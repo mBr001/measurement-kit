@@ -4,15 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/measurement-kit/measurement-kit/go/measurement"
+	"github.com/measurement-kit/measurement-kit/go/model"
 )
 
 type fakeTestKeys struct {
 	ClientResolver string `json:"client_resolver"`
 }
 
-func makeMeasurement(rt Template, ID string) measurement.Measurement {
-	return measurement.Measurement{
+func makeMeasurement(rt Template, ID string) model.Measurement {
+	return model.Measurement{
 		DataFormatVersion:    "0.2.0",
 		ID:                   "bdd20d7a-bba5-40dd-a111-9863d7908572",
 		MeasurementStartTime: "2018-11-01 15:33:20",

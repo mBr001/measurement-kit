@@ -1,4 +1,4 @@
-package measurement
+package model
 
 // Measurement contains a measurement result
 type Measurement struct {
