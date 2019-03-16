@@ -17,9 +17,9 @@ func TestRunIntegration(t *testing.T) {
 	}
 	result := run(context.Background(), config)
 	if result.Failure != "" {
-		t.Error("Failure is not empty")
+		t.Fatal("Failure is not empty")
 	}
 	if result.BootstrapTime <= 0.0 {
-		t.Error("BootstrapTime is not positive")
+		t.Fatal("BootstrapTime is not positive")
 	}
 }

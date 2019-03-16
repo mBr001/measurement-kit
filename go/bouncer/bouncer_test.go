@@ -10,7 +10,7 @@ func integration(t *testing.T, f func(context.Context, Config) ([]Entry, error))
 		BaseURL: "https://events.proteus.test.ooni.io",
 	})
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	for _, entry := range entries {
 		t.Logf("%+v", entry)

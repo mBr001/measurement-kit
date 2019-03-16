@@ -17,6 +17,6 @@ func TestNewMeasurementIntegration(t *testing.T) {
 	}
 	measurement := <-NewMeasurement(context.Background(), config)
 	if measurement.Failure() != "" {
-		t.Error("Failure is not empty")
+		t.Fatal("Failure is not empty")
 	}
 }
