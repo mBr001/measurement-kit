@@ -25,6 +25,12 @@ type PsiphonTunnelConfig struct {
 	// ConfigFilePath contains the psiphon config file path
 	ConfigFilePath string
 
+	// SoftwareName contains the software name
+	SoftwareName string
+
+	// SoftwareVersion contains the software version
+	SoftwareVersion string
+
 	// WorkDirPath contains the psiphon workdir path
 	WorkDirPath string
 }
@@ -77,8 +83,8 @@ func (nt *psiphonTunnelNettest) Run() bool {
 	}, collector.Template{
 		ProbeASN: geolookup.ProbeASN,
 		ProbeCC: geolookup.ProbeCC,
-		SoftwareName: "measurement-kit", // XXX
-		SoftwareVersion: "0.0.1", // XXX
+		SoftwareName: nt.config.SoftwareName,
+		SoftwareVersion: nt.config.SoftwareVersion,
 		TestName: "psiphontunnel",
 		TestVersion: "0.0.1",
 	})
@@ -102,8 +108,8 @@ func (nt *psiphonTunnelNettest) Run() bool {
 		ProbeASN: geolookup.ProbeASN,
 		ProbeCC: geolookup.ProbeCC,
 		ReportID: report.ID,
-		SoftwareName: "measurement-kit", // XXX
-		SoftwareVersion: "0.0.1", // XXX
+		SoftwareName: nt.config.SoftwareName,
+		SoftwareVersion: nt.config.SoftwareVersion,
 		TestKeys: testkeys,
 		TestName: "psiphontunnel",
 		TestRuntime: float64(time.Now().Sub(t0)) / float64(time.Second),

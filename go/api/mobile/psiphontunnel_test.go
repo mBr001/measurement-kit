@@ -9,6 +9,8 @@ func TestIntegrationPsiphonTunnel(t *testing.T) {
 		ASNDBPath     : "../../../asn.mmdb",
 		BouncerBaseURL: "https://events.proteus.test.ooni.io",
 		ConfigFilePath: "/tmp/psiphon.json",
+		SoftwareName  : "measurement-kit",
+		SoftwareVersion: "0.11.0-alpha",
 		WorkDirPath:    "/tmp/",
 	}
 	nettest := NewPsiphonTunnelNettest(&config)
