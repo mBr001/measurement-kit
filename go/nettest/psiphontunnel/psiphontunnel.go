@@ -15,14 +15,10 @@ import (
 	"golang.org/x/net/proxy"
 
 	"github.com/Psiphon-Labs/psiphon-tunnel-core/ClientLibrary/clientlib"
-	"github.com/measurement-kit/measurement-kit/go/measurement"
 )
 
 // Config contains the nettest configuration.
 type Config struct {
-	// MeasurementConfig contains the generic measurement config.
-	MeasurementConfig measurement.Config
-
 	// ConfigFilePath is the path where Psiphon config file is located.
 	ConfigFilePath string
 
@@ -31,8 +27,8 @@ type Config struct {
 	WorkDirPath string
 }
 
-// result contains the nettest result.
-type result struct {
+// TestKeys contains the nettest result.
+type TestKeys struct {
 	// Failure contains the failure that occurred. If it's all good
 	// this variable will be an empty string.
 	Failure string
@@ -98,25 +94,25 @@ func usetunnel(t *clientlib.PsiphonTunnel) error {
 
 // Run runs the psiphontunnel nettest with the specified config and context,
 // and returns the result of running the nettest to the caller.
-func Run(ctx context.Context, config Config) result {
-	var result result
+func Run(ctx context.Context, config Config) TestKeys {
+	var testkeys TestKeys
 	configJSON, params, err := processconfig(config)
 	if err != nil {
-		result.Failure = err.Error()
-		return result
+		testkeys.Failure = err.Error()
+		return testkeys
 	}
 	t0 := time.Now()
 	tunnel, err := clientlibStartTunnel(ctx, configJSON, "", params, nil, nil)
 	if err != nil {
-		result.Failure = err.Error()
-		return result
+		testkeys.Failure = err.Error()
+		return testkeys
 	}
-	result.BootstrapTime = float64(time.Now().Sub(t0)) / float64(time.Second)
+	testkeys.BootstrapTime = float64(time.Now().Sub(t0)) / float64(time.Second)
 	defer tunnel.Stop()
 	err = usetunnel(tunnel)
 	if err != nil {
-		result.Failure = err.Error()
-		return result
+		testkeys.Failure = err.Error()
+		return testkeys
 	}
-	return result
+	return testkeys
 }
