@@ -3,7 +3,7 @@ package psiphontunnel
 import (
 	"context"
 
-	"github.com/measurement-kit/measurement-kit/go/nettest/measurement"
+	"github.com/measurement-kit/measurement-kit/go/measurement"
 )
 
 type measurementResult struct {

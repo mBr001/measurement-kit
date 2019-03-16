@@ -15,7 +15,7 @@ import (
 	"golang.org/x/net/proxy"
 
 	"github.com/Psiphon-Labs/psiphon-tunnel-core/ClientLibrary/clientlib"
-	"github.com/measurement-kit/measurement-kit/go/nettest/measurement"
+	"github.com/measurement-kit/measurement-kit/go/measurement"
 )
 
 // Config contains the nettest configuration.
