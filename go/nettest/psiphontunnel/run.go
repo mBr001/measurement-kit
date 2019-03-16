@@ -32,8 +32,8 @@ type Config struct {
 	WorkDirPath string
 }
 
-// Result contains the nettest result.
-type Result struct {
+// result contains the nettest result.
+type result struct {
 	// Failure contains the failure that occurred. If it's all good
 	// this variable will be an empty string.
 	Failure string
@@ -78,6 +78,8 @@ func processconfig(config Config) ([]byte, clientlib.Parameters, error) {
 }
 
 func usetunnel(t *clientlib.PsiphonTunnel) error {
+	// TODO(bassosimone): for correctness here we MUST make sure that
+	// this proxy implementation does not leak the DNS.
 	endpoint := fmt.Sprintf("127.0.0.1:%d", t.SOCKSProxyPort)
 	dialer, err := proxySOCKS5("tcp", endpoint, nil, proxy.Direct)
 	if err != nil {
@@ -96,18 +98,17 @@ func usetunnel(t *clientlib.PsiphonTunnel) error {
 	return nil
 }
 
-// Run runs the psiphontunnel nettest with the specified config and returns
-// the result of running the nettest to the caller.
-func Run(config Config) Result {
-	var result Result
+// run runs the psiphontunnel nettest with the specified config and context,
+// and returns the result of running the nettest to the caller.
+func run(ctx context.Context, config Config) result {
+	var result result
 	configJSON, params, err := processconfig(config)
 	if err != nil {
 		result.Failure = err.Error()
 		return result
 	}
 	t0 := time.Now()
-	tunnel, err := clientlibStartTunnel(
-		context.Background(), configJSON, "", params, nil, nil)
+	tunnel, err := clientlibStartTunnel(ctx, configJSON, "", params, nil, nil)
 	if err != nil {
 		result.Failure = err.Error()
 		return result
