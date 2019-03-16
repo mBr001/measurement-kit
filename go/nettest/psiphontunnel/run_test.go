@@ -9,11 +9,11 @@ import (
 
 func TestRunIntegration(t *testing.T) {
 	config := Config{
-		MeasurementConfig: measurement.Config {
+		MeasurementConfig: measurement.Config{
 			Timeout: 10,
 		},
 		ConfigFilePath: "/tmp/psiphon.json",
-		WorkDirPath: "/tmp/",
+		WorkDirPath:    "/tmp/",
 	}
 	result := run(context.Background(), config)
 	if result.Failure != "" {

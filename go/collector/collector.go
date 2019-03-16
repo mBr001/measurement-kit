@@ -104,7 +104,7 @@ type updateResponse struct {
 // content. Returns the measurement ID or an error.
 func (r Report) Update(ctx context.Context, c interface{}) (string, error) {
 	ureq := updateRequest{
-		Format: "json",
+		Format:  "json",
 		Content: c,
 	}
 	data, err := json.Marshal(ureq)

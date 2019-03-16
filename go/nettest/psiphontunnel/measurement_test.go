@@ -13,7 +13,7 @@ func TestNewMeasurementIntegration(t *testing.T) {
 			Timeout: 10,
 		},
 		ConfigFilePath: "/tmp/psiphon.json",
-		WorkDirPath: "/tmp/",
+		WorkDirPath:    "/tmp/",
 	}
 	measurement := <-NewMeasurement(context.Background(), config)
 	if measurement.Failure() != "" {

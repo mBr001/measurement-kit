@@ -13,21 +13,21 @@ type fakeTestKeys struct {
 
 func makeMeasurement(rt Template, ID string) measurement.Measurement {
 	return measurement.Measurement{
-		DataFormatVersion: "0.2.0",
-		ID: "bdd20d7a-bba5-40dd-a111-9863d7908572",
-    MeasurementStartTime: "2018-11-01 15:33:20",
-    ProbeASN: rt.ProbeASN,
-		ProbeCC: rt.ProbeCC,
-		ReportID: ID,
-		SoftwareName: rt.SoftwareName,
-		SoftwareVersion: rt.SoftwareVersion,
+		DataFormatVersion:    "0.2.0",
+		ID:                   "bdd20d7a-bba5-40dd-a111-9863d7908572",
+		MeasurementStartTime: "2018-11-01 15:33:20",
+		ProbeASN:             rt.ProbeASN,
+		ProbeCC:              rt.ProbeCC,
+		ReportID:             ID,
+		SoftwareName:         rt.SoftwareName,
+		SoftwareVersion:      rt.SoftwareVersion,
 		TestKeys: fakeTestKeys{
 			ClientResolver: "91.80.37.104",
 		},
-		TestName: rt.TestName,
-		TestRuntime: 5.0565230846405,
-    TestStartTime: "2018-11-01 15:33:17",
-    TestVersion: rt.TestVersion,
+		TestName:      rt.TestName,
+		TestRuntime:   5.0565230846405,
+		TestStartTime: "2018-11-01 15:33:17",
+		TestVersion:   rt.TestVersion,
 	}
 }
 
@@ -36,12 +36,12 @@ func TestIntegration(t *testing.T) {
 		BaseURL: "https://collector-sandbox.ooni.io",
 	}
 	template := Template{
-		ProbeASN: "AS0",
-		ProbeCC: "ZZ",
-		SoftwareName: "measurement-kit",
+		ProbeASN:        "AS0",
+		ProbeCC:         "ZZ",
+		SoftwareName:    "measurement-kit",
 		SoftwareVersion: "0.0.1",
-		TestName: "dummy",
-		TestVersion: "0.0.1",
+		TestName:        "dummy",
+		TestVersion:     "0.0.1",
 	}
 	ctx := context.Background()
 	report, err := Open(ctx, config, template)

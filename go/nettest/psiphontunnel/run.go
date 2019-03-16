@@ -46,7 +46,7 @@ var osMkdirAll = os.MkdirAll
 var ioutilReadFile = ioutil.ReadFile
 var clientlibStartTunnel = clientlib.StartTunnel
 var urlParse = url.Parse
-var clntGet = func (clnt *http.Client, URL string) (*http.Response, error) {
+var clntGet = func(clnt *http.Client, URL string) (*http.Response, error) {
 	return clnt.Get(URL)
 }
 var proxySOCKS5 = proxy.SOCKS5
@@ -67,7 +67,7 @@ func processconfig(config Config) ([]byte, clientlib.Parameters, error) {
 	}
 	params := clientlib.Parameters{
 		EstablishTunnelTimeoutSeconds: &config.MeasurementConfig.Timeout,
-		DataRootDirectory: &workdir,
+		DataRootDirectory:             &workdir,
 	}
 	configJSON, err := ioutilReadFile(config.ConfigFilePath)
 	if err != nil {
