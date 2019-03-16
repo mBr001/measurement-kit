@@ -10,11 +10,11 @@ func TestRunIntegration(t *testing.T) {
 		ConfigFilePath: "/tmp/psiphon.json",
 		WorkDirPath:    "/tmp/",
 	}
-	result := Run(context.Background(), config)
-	if result.Failure != "" {
+	testkeys := Run(context.Background(), config)
+	if testkeys.Failure != "" {
 		t.Fatal("Failure is not empty")
 	}
-	if result.BootstrapTime <= 0.0 {
+	if testkeys.BootstrapTime <= 0.0 {
 		t.Fatal("BootstrapTime is not positive")
 	}
 }

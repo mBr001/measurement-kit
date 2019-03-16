@@ -31,10 +31,10 @@ type Config struct {
 type TestKeys struct {
 	// Failure contains the failure that occurred. If it's all good
 	// this variable will be an empty string.
-	Failure string
+	Failure string `json:"failure"`
 
 	// BootstrapTime is the time it took to bootstrap Psiphon.
-	BootstrapTime float64
+	BootstrapTime float64 `json:"bootstrap_time"`
 }
 
 var osRemoveAll = os.RemoveAll

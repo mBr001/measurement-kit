@@ -26,7 +26,7 @@ func lookupASNAndOrg(config Config, IP string, result *Result) error {
 	if err != nil {
 		return err
 	}
-	result.ProbeASN = fmt.Sprintf("ASN%d", record.ASN)
+	result.ProbeASN = fmt.Sprintf("AS%d", record.ASN)
 	result.ProbeNetworkName = record.Org
 	return nil
 }
