@@ -66,7 +66,6 @@ func processconfig(config Config) ([]byte, clientlib.Parameters, error) {
 		return nil, clientlib.Parameters{}, err
 	}
 	params := clientlib.Parameters{
-		EstablishTunnelTimeoutSeconds: &config.MeasurementConfig.Timeout,
 		DataRootDirectory:             &workdir,
 	}
 	configJSON, err := ioutilReadFile(config.ConfigFilePath)
@@ -97,9 +96,9 @@ func usetunnel(t *clientlib.PsiphonTunnel) error {
 	return nil
 }
 
-// run runs the psiphontunnel nettest with the specified config and context,
+// Run runs the psiphontunnel nettest with the specified config and context,
 // and returns the result of running the nettest to the caller.
-func run(ctx context.Context, config Config) result {
+func Run(ctx context.Context, config Config) result {
 	var result result
 	configJSON, params, err := processconfig(config)
 	if err != nil {
