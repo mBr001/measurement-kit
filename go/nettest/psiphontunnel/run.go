@@ -15,17 +15,16 @@ import (
 	"golang.org/x/net/proxy"
 
 	"github.com/Psiphon-Labs/psiphon-tunnel-core/ClientLibrary/clientlib"
+	"github.com/measurement-kit/measurement-kit/go/nettest/measurement"
 )
 
 // Config contains the nettest configuration.
 type Config struct {
+	// MeasurementConfig contains the generic measurement config.
+	MeasurementConfig measurement.Config
+
 	// ConfigFilePath is the path where Psiphon config file is located.
 	ConfigFilePath string
-
-	// Timeout is the number of seconds we're willing to wait for Psiphon to
-	// create a tunnel. After this time is expired, Psiphon will stop establishing
-	// the tunnel and return an error.
-	Timeout int
 
 	// WorkDirPath is the directory where Psiphon should store
 	// its configuration database.
@@ -67,7 +66,7 @@ func processconfig(config Config) ([]byte, clientlib.Parameters, error) {
 		return nil, clientlib.Parameters{}, err
 	}
 	params := clientlib.Parameters{
-		EstablishTunnelTimeoutSeconds: &config.Timeout,
+		EstablishTunnelTimeoutSeconds: &config.MeasurementConfig.Timeout,
 		DataRootDirectory: &workdir,
 	}
 	configJSON, err := ioutilReadFile(config.ConfigFilePath)

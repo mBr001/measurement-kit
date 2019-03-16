@@ -3,12 +3,16 @@ package psiphontunnel
 import (
 	"context"
 	"testing"
+
+	"github.com/measurement-kit/measurement-kit/go/nettest/measurement"
 )
 
 func TestRunIntegration(t *testing.T) {
 	config := Config{
+		MeasurementConfig: measurement.Config {
+			Timeout: 10,
+		},
 		ConfigFilePath: "/tmp/psiphon.json",
-		Timeout: 10,
 		WorkDirPath: "/tmp/",
 	}
 	result := run(context.Background(), config)
