@@ -1,4 +1,5 @@
-// Package collector implements v2.0.0 of the collector protocol.
+// Package collector contains a client implementation of the OONI
+// collector protocol. We implement v2.0.0.
 package collector
 
 import (
