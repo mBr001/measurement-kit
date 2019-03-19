@@ -15,10 +15,14 @@ import (
 	"golang.org/x/net/proxy"
 
 	"github.com/Psiphon-Labs/psiphon-tunnel-core/ClientLibrary/clientlib"
+	"github.com/measurement-kit/measurement-kit/go/nettest/nettest"
 )
 
 // Config contains the nettest configuration.
 type Config struct {
+	// NettestConfig contains the generic nettest configuration.
+	NettestConfig nettest.Config
+
 	// ConfigFilePath is the path where Psiphon config file is located.
 	ConfigFilePath string
 
@@ -115,4 +119,16 @@ func Run(ctx context.Context, config Config) TestKeys {
 		return testkeys
 	}
 	return testkeys
+}
+
+func NewNettest(ctx context.Context, config Config) *nettest.Nettest {
+	nettest := nettest.NewPartial()
+	nettest.Ctx = ctx
+	nettest.Config = config.NettestConfig
+	nettest.TestName = "psiphontunnel"
+	nettest.TestVersion = "0.0.1"
+	nettest.RunFunc = func(string)interface{} {
+		return Run(ctx, config)
+	}
+	return nettest
 }

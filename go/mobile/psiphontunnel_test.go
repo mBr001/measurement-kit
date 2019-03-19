@@ -6,7 +6,7 @@ import (
 
 func TestIntegrationPsiphonTunnel(t *testing.T) {
 	config := PsiphonTunnelConfig{
-		ASNDBPath     : "../../../asn.mmdb",
+		ASNDBPath     : "../../asn.mmdb",
 		BouncerBaseURL: "https://events.proteus.test.ooni.io",
 		ConfigFilePath: "/tmp/psiphon.json",
 		SoftwareName  : "measurement-kit",

@@ -1,4 +1,4 @@
-package model
+package nettest
 
 // Measurement contains a measurement result
 type Measurement struct {
