@@ -35,10 +35,10 @@ type Config struct {
 type TestKeys struct {
 	// Failure contains the failure that occurred. If it's all good
 	// this variable will be an empty string.
-	Failure string `json:"failure"`
+	Failure string `json:"failure,omitempty"`
 
 	// BootstrapTime is the time it took to bootstrap Psiphon.
-	BootstrapTime float64 `json:"bootstrap_time"`
+	BootstrapTime float64 `json:"bootstrap_time,omitempty"`
 }
 
 var osRemoveAll = os.RemoveAll
@@ -66,7 +66,7 @@ func processconfig(config Config) ([]byte, clientlib.Parameters, error) {
 		return nil, clientlib.Parameters{}, err
 	}
 	params := clientlib.Parameters{
-		DataRootDirectory:             &workdir,
+		DataRootDirectory: &workdir,
 	}
 	configJSON, err := ioutilReadFile(config.ConfigFilePath)
 	if err != nil {
@@ -127,7 +127,7 @@ func NewNettest(ctx context.Context, config Config) *nettest.Nettest {
 	nettest.Config = config.NettestConfig
 	nettest.TestName = "psiphontunnel"
 	nettest.TestVersion = "0.0.1"
-	nettest.RunFunc = func(string)interface{} {
+	nettest.RunFunc = func(string) interface{} {
 		return Run(ctx, config)
 	}
 	return nettest

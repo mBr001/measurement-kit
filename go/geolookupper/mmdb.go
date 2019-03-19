@@ -19,7 +19,7 @@ func lookupASNAndOrg(config Config, IP string, result *Result) error {
 	defer db.Close()
 	dataIP := net.ParseIP(IP)
 	var record struct {
-		ASN int `maxminddb:"autonomous_system_number"`
+		ASN int    `maxminddb:"autonomous_system_number"`
 		Org string `maxminddb:"autonomous_system_organization"`
 	}
 	err = db.Lookup(dataIP, &record)

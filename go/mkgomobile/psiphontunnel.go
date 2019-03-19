@@ -42,7 +42,7 @@ type psiphonTunnelNettest struct {
 func NewPsiphonTunnelNettest(config *PsiphonTunnelConfig) Nettest {
 	return &psiphonTunnelNettest{
 		config: config,
-		ctx: context.Background(),
+		ctx:    context.Background(),
 	}
 }
 
@@ -50,13 +50,13 @@ func (psiphon *psiphonTunnelNettest) Run() bool {
 	log.Infof("psiphon.config: %+v", psiphon.config)
 	config := psiphontunnel.Config{
 		NettestConfig: nettest.Config{
-			ASNDBPath: psiphon.config.ASNDBPath,
-			BouncerBaseURL: psiphon.config.BouncerBaseURL,
-			SoftwareName: psiphon.config.SoftwareName,
+			ASNDBPath:       psiphon.config.ASNDBPath,
+			BouncerBaseURL:  psiphon.config.BouncerBaseURL,
+			SoftwareName:    psiphon.config.SoftwareName,
 			SoftwareVersion: psiphon.config.SoftwareVersion,
 		},
 		ConfigFilePath: psiphon.config.ConfigFilePath,
-		WorkDirPath: psiphon.config.WorkDirPath,
+		WorkDirPath:    psiphon.config.WorkDirPath,
 	}
 	log.Infof("config: %+v", config)
 	nettest := psiphontunnel.NewNettest(psiphon.ctx, config)

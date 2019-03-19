@@ -4,25 +4,25 @@ package model
 // Measurement contains a measurement result
 type Measurement struct {
 	// Annotations contains results annotations
-	Annotations map[string]string `json:"annotations"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 
 	// DataFormatVersion is the version of the data format
 	DataFormatVersion string `json:"data_format_version"`
 
 	// ID is the locally generated measurement ID
-	ID string `json:"id"`
+	ID string `json:"id,omitempty"`
 
 	// Input is the measurement input
-	Input string `json:"input"`
+	Input string `json:"input,omitempty"`
 
 	// InputHashes contains input hashes
-	InputHashes []string `json:"input_hashes"`
+	InputHashes []string `json:"input_hashes,omitempty"`
 
 	// MeasurementStartTime is the time when the measurement started
 	MeasurementStartTime string `json:"measurement_start_time"`
 
 	// Options contains command line options
-	Options []string `json:"options"`
+	Options []string `json:"options,omitempty"`
 
 	// ProbeASN contains the probe autonomous system number
 	ProbeASN string `json:"probe_asn"`
@@ -31,10 +31,10 @@ type Measurement struct {
 	ProbeCC string `json:"probe_cc"`
 
 	// ProbeCity contains the probe city
-	ProbeCity string `json:"probe_city"`
+	ProbeCity string `json:"probe_city,omitempty"`
 
 	// ProbeIP contains the probe IP
-	ProbeIP string `json:"probe_ip"`
+	ProbeIP string `json:"probe_ip,omitempty"`
 
 	// ReportID contains the report ID
 	ReportID string `json:"report_id"`
@@ -46,7 +46,7 @@ type Measurement struct {
 	SoftwareVersion string `json:"software_version"`
 
 	// TestHelpers contains the test helpers
-	TestHelpers map[string]string `json:"test_helpers"`
+	TestHelpers map[string]string `json:"test_helpers,omitempty"`
 
 	// TestKeys contains the real test result
 	TestKeys interface{} `json:"test_keys"`

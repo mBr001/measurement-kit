@@ -55,7 +55,7 @@ type Nettest struct {
 
 	// RunFunc is the function that actually implements the test. Also this field
 	// must be set by the constructor of the specific nettest package.
-	RunFunc func(string)interface{}
+	RunFunc func(string) interface{}
 
 	// TestStartTime is the time when the test started. This is set
 	// by the NewPartial function in this package.
@@ -157,12 +157,12 @@ func (nettest *Nettest) OpenReport() error {
 	report, err := collector.Open(nettest.Ctx, collector.Config{
 		BaseURL: nettest.collectorBaseURL(),
 	}, collector.Template{
-		ProbeASN: nettest.probeASN(),
-		ProbeCC: nettest.probeCC(),
-		SoftwareName: nettest.Config.SoftwareName,
+		ProbeASN:        nettest.probeASN(),
+		ProbeCC:         nettest.probeCC(),
+		SoftwareName:    nettest.Config.SoftwareName,
 		SoftwareVersion: nettest.Config.SoftwareVersion,
-		TestName: nettest.TestName,
-		TestVersion: nettest.TestVersion,
+		TestName:        nettest.TestName,
+		TestVersion:     nettest.TestVersion,
 	})
 	if err != nil {
 		return err
@@ -179,18 +179,18 @@ func (nettest *Nettest) Measure(input string) model.Measurement {
 	t0 := time.Now()
 	testkeys := nettest.RunFunc(input)
 	return model.Measurement{
-		DataFormatVersion: "0.2.0",
+		DataFormatVersion:    "0.2.0",
 		MeasurementStartTime: measurementstarttime,
-		ProbeASN: nettest.probeASN(),
-		ProbeCC: nettest.probeCC(),
-		ReportID: nettest.Report.ID,
-		SoftwareName: nettest.Config.SoftwareName,
-		SoftwareVersion: nettest.Config.SoftwareVersion,
-		TestKeys: testkeys,
-		TestName: nettest.TestName,
-		TestRuntime: float64(time.Now().Sub(t0)) / float64(time.Second),
-		TestStartTime: nettest.TestStartTime,
-		TestVersion: nettest.TestVersion,
+		ProbeASN:             nettest.probeASN(),
+		ProbeCC:              nettest.probeCC(),
+		ReportID:             nettest.Report.ID,
+		SoftwareName:         nettest.Config.SoftwareName,
+		SoftwareVersion:      nettest.Config.SoftwareVersion,
+		TestKeys:             testkeys,
+		TestName:             nettest.TestName,
+		TestRuntime:          float64(time.Now().Sub(t0)) / float64(time.Second),
+		TestStartTime:        nettest.TestStartTime,
+		TestVersion:          nettest.TestVersion,
 	}
 }
 
