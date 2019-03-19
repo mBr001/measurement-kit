@@ -10,6 +10,7 @@ import (
 	"github.com/measurement-kit/measurement-kit/go/bouncer"
 	"github.com/measurement-kit/measurement-kit/go/collector"
 	"github.com/measurement-kit/measurement-kit/go/geolookupper"
+	"github.com/measurement-kit/measurement-kit/go/nettest/model"
 )
 
 // Config contains the generic nettest configuration set by the
@@ -173,11 +174,11 @@ func (nettest *Nettest) OpenReport() error {
 // Measure runs a nettest measurement with the provided input and returns the
 // measurement object. Pass an empty string for input-less nettests. It is
 // safe to call this method from different goroutines concurrently.
-func (nettest *Nettest) Measure(input string) Measurement {
+func (nettest *Nettest) Measure(input string) model.Measurement {
 	measurementstarttime := time.Now().UTC().Format(dateformat)
 	t0 := time.Now()
 	testkeys := nettest.RunFunc(input)
-	return Measurement{
+	return model.Measurement{
 		DataFormatVersion: "0.2.0",
 		MeasurementStartTime: measurementstarttime,
 		ProbeASN: nettest.probeASN(),
@@ -195,7 +196,7 @@ func (nettest *Nettest) Measure(input string) Measurement {
 
 // Submit submits a measurement. Returns the measurementID on success and
 // an error on failure. Also this method is concurrency safe.
-func (nettest *Nettest) Submit(measurement Measurement) (string, error) {
+func (nettest *Nettest) Submit(measurement model.Measurement) (string, error) {
 	measurementID, err := nettest.Report.Update(nettest.Ctx, measurement)
 	if err != nil {
 		return "", err

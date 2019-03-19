@@ -1,5 +1,5 @@
-// Package mobile contains the mobile library
-package mobile
+// Package mkgomobile contains the mobile library
+package mkgomobile
 
 // Nettest is the interface of all tests
 type Nettest interface {

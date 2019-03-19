@@ -1,4 +1,5 @@
-package nettest
+// Package model contains common struct definitions
+package model
 
 // Measurement contains a measurement result
 type Measurement struct {
