@@ -47,6 +47,7 @@ func NewPsiphonTunnelNettest(config *PsiphonTunnelConfig) Nettest {
 }
 
 func (psiphon *psiphonTunnelNettest) Run() bool {
+	log.Infof("psiphon.config: %+v", psiphon.config)
 	config := psiphontunnel.Config{
 		NettestConfig: nettest.Config{
 			ASNDBPath: psiphon.config.ASNDBPath,
@@ -57,6 +58,7 @@ func (psiphon *psiphonTunnelNettest) Run() bool {
 		ConfigFilePath: psiphon.config.ConfigFilePath,
 		WorkDirPath: psiphon.config.WorkDirPath,
 	}
+	log.Infof("config: %+v", config)
 	nettest := psiphontunnel.NewNettest(psiphon.ctx, config)
 	defer nettest.Close()
 	err := nettest.DiscoverAvailableCollectors()
