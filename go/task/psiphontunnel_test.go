@@ -18,8 +18,8 @@ func TestPsiphonTunnelIntegration(t *testing.T) {
 		}
 	}`
 	task := Start(config)
-	for !IsDone(task) {
-		event := WaitForNextEvent(task)
+	for !task.IsDone() {
+		event := task.WaitForNextEvent()
 		fmt.Println(event)
 	}
 }

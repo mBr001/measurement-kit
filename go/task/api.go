@@ -14,8 +14,8 @@ type Task struct {
 	done   int64
 }
 
-// New starts a task with the specified settings.
-func New(settings string) *Task {
+// Start starts a task with the specified settings.
+func Start(settings string) *Task {
 	ctx, cancel := context.WithCancel(context.Background())
 	state := &Task{
 		cancel: cancel,

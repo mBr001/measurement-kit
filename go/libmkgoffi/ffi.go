@@ -30,7 +30,7 @@ func mkgo_ffi_task_start(settings *C.char) int {
 	const minhandle = 1 // first entry must be nil
 	for handle := minhandle; settings != nil && handle < len(table); handle += 1 {
 		if table[handle] == nil {
-			table[handle] = task.New(C.GoString(settings))
+			table[handle] = task.Start(C.GoString(settings))
 			return handle
 		}
 	}
