@@ -20,7 +20,7 @@ type event struct {
 }
 
 // emit emits an event with the given task
-func emit(task *State, event event) {
+func emit(task *Task, event event) {
 	data, err := json.Marshal(event)
 	if err != nil {
 		return

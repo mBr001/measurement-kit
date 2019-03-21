@@ -11,12 +11,12 @@ import (
 // mutex protects table from concurrent access
 var mutex sync.Mutex
 
-// table contains the state of running tasks. Note that the first
+// table contains the running tasks. Note that the first
 // entry of the table is always nil.
-var table [256]*task.State
+var table [256]*task.Task
 
-// getstate returns the state bound to a handle or nil
-func getstate(handle int) *task.State {
+// gettask returns the task bound to a handle or nil
+func gettask(handle int) *task.Task {
 	if handle >= len(table) || table[handle] == nil {
 		return nil
 	}
@@ -41,19 +41,19 @@ func mkgo_ffi_task_start(settings *C.char) int {
 func mkgo_ffi_task_wait_for_next_event(handle int) *C.char {
 	mutex.Lock()
 	defer mutex.Unlock()
-	state := getstate(handle)
-	if state == nil {
+	task := gettask(handle)
+	if task == nil {
 		return nil
 	}
-	return C.CString(state.WaitForNextEvent())
+	return C.CString(task.WaitForNextEvent())
 }
 
 //export mkgo_ffi_task_is_done
 func mkgo_ffi_task_is_done(handle int) int {
 	mutex.Lock()
 	defer mutex.Unlock()
-	state := getstate(handle)
-	if state == nil || state.IsDone() {
+	task := gettask(handle)
+	if task == nil || task.IsDone() {
 		return 1
 	}
 	return 0
@@ -63,9 +63,9 @@ func mkgo_ffi_task_is_done(handle int) int {
 func mkgo_ffi_task_interrupt(handle int) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	state := getstate(handle)
-	if state != nil {
-		state.Interrupt()
+	task := gettask(handle)
+	if task != nil {
+		task.Interrupt()
 	}
 }
 
@@ -73,13 +73,13 @@ func mkgo_ffi_task_interrupt(handle int) {
 func mkgo_ffi_task_destroy(handle int) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	state := getstate(handle)
-	if state == nil {
+	task := gettask(handle)
+	if task == nil {
 		return
 	}
-	state.Interrupt()
-	for !state.IsDone() {
-		state.WaitForNextEvent() // drain
+	task.Interrupt()
+	for !task.IsDone() {
+		task.WaitForNextEvent() // drain
 	}
 	table[handle] = nil
 }

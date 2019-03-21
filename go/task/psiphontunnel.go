@@ -6,7 +6,7 @@ import (
 )
 
 // psiphontunnelNew creates a new psiphontunnel nettest.
-func psiphontunnelNew(task *State, settings *settings) *nettest.Nettest {
+func psiphontunnelNew(task *Task, settings *settings) *nettest.Nettest {
 	settings.Inputs = []string{""} // XXX
 	config := psiphontunnel.Config{
 		NettestConfig: nettest.Config{

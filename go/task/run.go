@@ -9,7 +9,7 @@ import (
 )
 
 // discovercollectors discovers the available collectors
-func discovercollectors(task *State, nettest *nettest.Nettest) bool {
+func discovercollectors(task *Task, nettest *nettest.Nettest) bool {
 	err := nettest.DiscoverAvailableCollectors()
 	if err != nil {
 		emit(task, event{Key: "failure.startup", Value: eventValue{
@@ -26,7 +26,7 @@ func discovercollectors(task *State, nettest *nettest.Nettest) bool {
 }
 
 // selectcollector selects a collector
-func selectcollector(task *State, nettest *nettest.Nettest) bool {
+func selectcollector(task *Task, nettest *nettest.Nettest) bool {
 	err := nettest.SelectCollector()
 	if err != nil {
 		emit(task, event{Key: "failure.startup", Value: eventValue{
@@ -42,7 +42,7 @@ func selectcollector(task *State, nettest *nettest.Nettest) bool {
 }
 
 // geolookup performs a geoip lookup
-func geolookup(task *State, nettest *nettest.Nettest) bool {
+func geolookup(task *Task, nettest *nettest.Nettest) bool {
 	err := nettest.GeoLookup()
 	if err != nil {
 		emit(task, event{Key: "failure.startup", Value: eventValue{
@@ -58,7 +58,7 @@ func geolookup(task *State, nettest *nettest.Nettest) bool {
 }
 
 // openreport opens a report
-func openreport(task *State, nettest *nettest.Nettest) bool {
+func openreport(task *Task, nettest *nettest.Nettest) bool {
 	err := nettest.OpenReport()
 	if err != nil {
 		emit(task, event{Key: "failure.report_create", Value: eventValue{
@@ -74,7 +74,7 @@ func openreport(task *State, nettest *nettest.Nettest) bool {
 }
 
 // makenettest creates a new nettest or returns nil
-func makenettest(task *State, settings *settings) *nettest.Nettest {
+func makenettest(task *Task, settings *settings) *nettest.Nettest {
 	if settings.Name == "psiphontunnel" {
 		return psiphontunnelNew(task, settings)
 	}
@@ -85,7 +85,7 @@ func makenettest(task *State, settings *settings) *nettest.Nettest {
 }
 
 // runWithSettings runs a nettest with settings.
-func runWithSettings(task *State, settings settings) {
+func runWithSettings(task *Task, settings settings) {
 	nettest := makenettest(task, &settings)
 	if nettest == nil {
 		return
@@ -122,7 +122,7 @@ func runWithSettings(task *State, settings settings) {
 }
 
 // runWithSerializedSettings runs a task with serialized settings
-func runWithSerializedSettings(task *State, serializedsettings string) {
+func runWithSerializedSettings(task *Task, serializedsettings string) {
 	defer close(task.ch)
 	defer func() {
 		atomic.StoreInt64(&task.done, 1)
