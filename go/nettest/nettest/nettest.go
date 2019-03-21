@@ -32,33 +32,28 @@ type Config struct {
 // dateformat is the format used by OONI for dates inside reports.
 const dateformat = "2006-01-02 15:04:05"
 
-// Nettest is a generic nettest. You should create a specific nettest
-// by using the specific-nettest-package New method. In turn such
-// nettest-specific packages should get a partially initialized Nettest
-// by calling the NewPartial function on this package.
+// Func is the function that implements a nettest.
+type Func = func(string)interface{}
+
+// Nettest is a nettest.
 type Nettest struct {
-	// Ctx is the context for running the nettest. This must be set
-	// by the constructor of the specific nettest package.
+	// Ctx is the context for running the nettest.
 	Ctx context.Context
 
-	// Config is the user supplied configuration. Also this field must
-	// be set by the constructor of the specific nettest package.
+	// Config is the user supplied configuration.
 	Config Config
 
-	// TestName is the name of the test. Also this field must
-	// be set by the constructor of the specific nettest package.
+	// TestName is the name of the test.
 	TestName string
 
-	// TestVersion is the version of the test. Also this field must
-	// be set by the constructor of the specific nettest package.
+	// TestVersion is the version of the test.
 	TestVersion string
 
-	// RunFunc is the function that actually implements the test. Also this field
-	// must be set by the constructor of the specific nettest package.
-	RunFunc func(string) interface{}
+	// Func is the function that actually implements the test.
+	Func Func
 
 	// TestStartTime is the time when the test started. This is set
-	// by the NewPartial function in this package.
+	// by the New function in this package.
 	TestStartTime string
 
 	// AvailableCollectors contains the available collectors. This field
@@ -78,11 +73,15 @@ type Nettest struct {
 	Report collector.Report
 }
 
-// NewPartial returns a partially initialized nettest. More initialization
-// is required to actually used it, as already mentioned.
-func NewPartial() *Nettest {
+// New returns a new nettest instance.
+func New(ctx context.Context, config Config, name, version string, fn Func) *Nettest {
 	return &Nettest{
+		Config:        config,
+		Ctx:           ctx,
+		Func:          fn,
+		TestName:      name,
 		TestStartTime: time.Now().UTC().Format(dateformat),
+		TestVersion:   version,
 	}
 }
 
@@ -175,27 +174,35 @@ func (nettest *Nettest) OpenReport() error {
 // measurement object. Pass an empty string for input-less nettests. It is
 // safe to call this method from different goroutines concurrently.
 func (nettest *Nettest) Measure(input string) model.Measurement {
-	measurementstarttime := time.Now().UTC().Format(dateformat)
+	measurement := nettest.NewMeasurement()
+	measurement.Input = input
 	t0 := time.Now()
-	testkeys := nettest.RunFunc(input)
+	measurement.TestKeys = nettest.Func(input)
+	elapsed := float64(time.Now().Sub(t0)) / float64(time.Second)
+	measurement.TestRuntime = elapsed
+	return measurement
+}
+
+// NewMeasurement returns a new measurement. The fields that the user should
+// initialize are Inputs, TestKeys, and TestRuntime. All the other fields are
+// already initialized by NewMeasurement.
+func (nettest *Nettest) NewMeasurement() model.Measurement {
 	return model.Measurement{
 		DataFormatVersion:    "0.2.0",
-		MeasurementStartTime: measurementstarttime,
+		MeasurementStartTime: time.Now().UTC().Format(dateformat),
 		ProbeASN:             nettest.probeASN(),
 		ProbeCC:              nettest.probeCC(),
 		ReportID:             nettest.Report.ID,
 		SoftwareName:         nettest.Config.SoftwareName,
 		SoftwareVersion:      nettest.Config.SoftwareVersion,
-		TestKeys:             testkeys,
 		TestName:             nettest.TestName,
-		TestRuntime:          float64(time.Now().Sub(t0)) / float64(time.Second),
 		TestStartTime:        nettest.TestStartTime,
 		TestVersion:          nettest.TestVersion,
 	}
 }
 
 // Submit submits a measurement. Returns the measurementID on success and
-// an error on failure. Also this method is concurrency safe.
+// an error on failure. This method is concurrency safe.
 func (nettest *Nettest) Submit(measurement model.Measurement) (string, error) {
 	measurementID, err := nettest.Report.Update(nettest.Ctx, measurement)
 	if err != nil {

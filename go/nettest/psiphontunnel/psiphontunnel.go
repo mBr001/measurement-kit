@@ -122,13 +122,9 @@ func Run(ctx context.Context, config Config) TestKeys {
 }
 
 func NewNettest(ctx context.Context, config Config) *nettest.Nettest {
-	nettest := nettest.NewPartial()
-	nettest.Ctx = ctx
-	nettest.Config = config.NettestConfig
-	nettest.TestName = "psiphontunnel"
-	nettest.TestVersion = "0.0.1"
-	nettest.RunFunc = func(string) interface{} {
-		return Run(ctx, config)
-	}
+	nettest := nettest.New(
+		ctx, config.NettestConfig, "psiphontunnel", "0.0.1", func(string) interface{} {
+			return Run(ctx, config)
+		})
 	return nettest
 }
