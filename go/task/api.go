@@ -14,9 +14,8 @@ type State struct {
 	done   int64
 }
 
-// Start starts a task with the specified settings. Returns a valid
-// pointer if settings are good, a null pointer otherwise.
-func Start(settings string) *State {
+// New starts a task with the specified settings.
+func New(settings string) *State {
 	ctx, cancel := context.WithCancel(context.Background())
 	state := &State{
 		cancel: cancel,
@@ -30,11 +29,8 @@ func Start(settings string) *State {
 
 // WaitForNextEvent blocks until task generates the next event. Returns a
 // valid pointer on success, a null pointer on failure.
-func WaitForNextEvent(task *State) string {
+func (task *State) WaitForNextEvent() string {
 	const terminated = `{"key": "status.terminated", "value": {}}`
-	if task == nil {
-		return terminated
-	}
 	event, ok := <-task.ch
 	if !ok {
 		return terminated
@@ -43,16 +39,11 @@ func WaitForNextEvent(task *State) string {
 }
 
 // IsDone returns true if the task is done, false otherwise.
-func IsDone(task *State) bool {
-	if task == nil {
-		return true
-	}
+func (task *State) IsDone() bool {
 	return atomic.LoadInt64(&task.done) != 0
 }
 
 // Interrupt interrupts a running task.
-func Interrupt(task *State) {
-	if task != nil {
-		task.cancel()
-	}
+func (task *State) Interrupt() {
+	task.cancel()
 }
