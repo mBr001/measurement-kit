@@ -27,13 +27,15 @@ func Start(settings string) *Task {
 	return state
 }
 
+// Terminated is the event returned when a task is done
+const Terminated = `{"key": "status.terminated", "value": {}}`
+
 // WaitForNextEvent blocks until task generates the next event. Returns a
 // valid pointer on success, a null pointer on failure.
 func (task *Task) WaitForNextEvent() string {
-	const terminated = `{"key": "status.terminated", "value": {}}`
 	event, ok := <-task.ch
 	if !ok {
-		return terminated
+		return Terminated
 	}
 	return event
 }
