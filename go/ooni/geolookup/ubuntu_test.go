@@ -1,4 +1,4 @@
-package geolookupper
+package geolookup
 
 import (
 	"context"

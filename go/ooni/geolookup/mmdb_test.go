@@ -1,4 +1,4 @@
-package geolookupper
+package geolookup
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 
 func TestIntegrationLookupASNAndOrg(t *testing.T) {
 	config := Config{
-		ASNDBPath: "../../asn.mmdb",
+		ASNDatabasePath: "../../asn.mmdb",
 	}
 	var result Result
 	err := lookupASNAndOrg(config, "8.8.8.8", &result)

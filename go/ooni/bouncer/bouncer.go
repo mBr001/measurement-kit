@@ -1,5 +1,7 @@
-// Package bouncer contains a bouncer client implementation. This code
-// implements v2.0.0 of the buncer specification.
+// Package bouncer contains a OONI bouncer client implementation.
+//
+// Specifically we implement v2.0.0 of the OONI bouncer specification defined
+// in https://github.com/ooni/spec/blob/master/backends/bk-004-bouncer.md.
 package bouncer
 
 import (
@@ -64,8 +66,8 @@ func get(ctx context.Context, config Config, path string) ([]Entry, error) {
 	return result.Results, err
 }
 
-// GetCollectors queries the bouncer specified in |config| for collectors
-// using the provided |context|. Returns a list of entries or an error.
+// GetCollectors queries the bouncer for collectors. Returns a list of
+// entries on success; an error on failure.
 func GetCollectors(ctx context.Context, config Config) ([]Entry, error) {
 	return get(ctx, config, "/api/v1/collectors")
 }

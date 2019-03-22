@@ -15,7 +15,8 @@ import (
 	"golang.org/x/net/proxy"
 
 	"github.com/Psiphon-Labs/psiphon-tunnel-core/ClientLibrary/clientlib"
-	"github.com/measurement-kit/measurement-kit/go/nettest/nettest"
+	"github.com/measurement-kit/measurement-kit/go/ooni/nettest"
+	"github.com/measurement-kit/measurement-kit/go/ooni/nettest/internal"
 )
 
 // Config contains the nettest configuration.
@@ -31,10 +32,12 @@ type Config struct {
 	WorkDirPath string
 }
 
-// TestKeys contains the nettest result.
-type TestKeys struct {
-	// Failure contains the failure that occurred. If it's all good
-	// this variable will be an empty string.
+// Results contains the nettest result.
+//
+// This is what will end up into the Measurement.TestKeys field
+// when you run this nettest.
+type Results struct {
+	// Failure contains the failure that occurred.
 	Failure string `json:"failure,omitempty"`
 
 	// BootstrapTime is the time it took to bootstrap Psiphon.
@@ -96,35 +99,35 @@ func usetunnel(t *clientlib.PsiphonTunnel) error {
 	return nil
 }
 
-// Run runs the psiphontunnel nettest with the specified config and context,
-// and returns the result of running the nettest to the caller.
-func Run(ctx context.Context, config Config) TestKeys {
-	var testkeys TestKeys
+// run runs the nettest and returns the results.
+func run(ctx context.Context, config Config) Results {
+	var results Results
 	configJSON, params, err := processconfig(config)
 	if err != nil {
-		testkeys.Failure = err.Error()
-		return testkeys
+		results.Failure = err.Error()
+		return results
 	}
 	t0 := time.Now()
 	tunnel, err := clientlibStartTunnel(ctx, configJSON, "", params, nil, nil)
 	if err != nil {
-		testkeys.Failure = err.Error()
-		return testkeys
+		results.Failure = err.Error()
+		return results
 	}
-	testkeys.BootstrapTime = float64(time.Now().Sub(t0)) / float64(time.Second)
+	results.BootstrapTime = float64(time.Now().Sub(t0)) / float64(time.Second)
 	defer tunnel.Stop()
 	err = usetunnel(tunnel)
 	if err != nil {
-		testkeys.Failure = err.Error()
-		return testkeys
+		results.Failure = err.Error()
+		return results
 	}
-	return testkeys
+	return results
 }
 
+// NewNettest creates a new psiphontunnel nettest.
 func NewNettest(ctx context.Context, config Config) *nettest.Nettest {
-	nettest := nettest.New(
+	nettest := internal.NewNettest(
 		ctx, config.NettestConfig, "psiphontunnel", "0.0.1", func(string) interface{} {
-			return Run(ctx, config)
+			return run(ctx, config)
 		})
 	return nettest
 }

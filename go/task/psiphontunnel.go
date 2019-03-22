@@ -1,8 +1,8 @@
 package task
 
 import (
-	"github.com/measurement-kit/measurement-kit/go/nettest/nettest"
-	"github.com/measurement-kit/measurement-kit/go/nettest/psiphontunnel"
+	"github.com/measurement-kit/measurement-kit/go/ooni/nettest"
+	"github.com/measurement-kit/measurement-kit/go/ooni/nettest/psiphontunnel"
 )
 
 // psiphontunnelNew creates a new psiphontunnel nettest.
@@ -10,7 +10,7 @@ func psiphontunnelNew(task *Task, settings *settings) *nettest.Nettest {
 	settings.Inputs = []string{""} // XXX
 	config := psiphontunnel.Config{
 		NettestConfig: nettest.Config{
-			ASNDBPath:       settings.Options.GeoIPASNPath,
+			ASNDatabasePath: settings.Options.GeoIPASNPath,
 			BouncerBaseURL:  settings.Options.BouncerBaseURL,
 			SoftwareName:    settings.Options.SoftwareName,
 			SoftwareVersion: settings.Options.SoftwareVersion,

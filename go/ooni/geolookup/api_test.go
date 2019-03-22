@@ -1,4 +1,4 @@
-package geolookupper
+package geolookup
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 
 func TestIntegrationLookup(t *testing.T) {
 	config := Config{
-		ASNDBPath: "../../asn.mmdb",
+		ASNDatabasePath: "../../asn.mmdb",
 	}
-	result, err := Lookup(context.Background(), config)
+	result, err := Perform(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
 	}

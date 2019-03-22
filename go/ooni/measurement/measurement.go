@@ -1,7 +1,10 @@
-// Package model contains common struct definitions
-package model
+// Package measurement defines the structure of a OONI measurement.
+//
+// This structure is compatible with the definition of the base data format in
+// https://github.com/ooni/spec/blob/master/data-formats/df-000-base.md.
+package measurement
 
-// Measurement contains a measurement result
+// Measurement is a OONI measurement.
 type Measurement struct {
 	// Annotations contains results annotations
 	Annotations map[string]string `json:"annotations,omitempty"`
@@ -48,7 +51,8 @@ type Measurement struct {
 	// TestHelpers contains the test helpers
 	TestHelpers map[string]string `json:"test_helpers,omitempty"`
 
-	// TestKeys contains the real test result
+	// TestKeys contains the real test result. This field is opaque because
+	// each nettest will insert here a different structure.
 	TestKeys interface{} `json:"test_keys"`
 
 	// TestName contains the test name

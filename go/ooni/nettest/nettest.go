@@ -1,4 +1,37 @@
-// Package nettest contains the generic code to run a nettest.
+// Package nettest contains generic code for running nettests.
+//
+// You typically create a Nettest instance by invoking the factory
+// function exposed by a specific nettest package, and the use this
+// generic code to manage the test lifecycle. For example
+//
+//     nettest := psiphontunnel.NewNettest(context.Background(), config)
+//     defer nettest.Close()
+//     err := nettest.DiscoverAvailableCollectors()
+//     if err != nil {
+//       log.Fatal(err)
+//     }
+//     err = nettest.SelectCollector()
+//     if err != nil {
+//       log.Fatal(err)
+//     }
+//     err = nettest.GeoLookup()
+//     if err != nil {
+//       log.Fatal(err)
+//     }
+//     err = nettest.OpenReport()
+//     if err != nil {
+//       log.Fatal(err)
+//     }
+//     measurement := nettest.Measure("")
+//     measurementID, err := nettest.Submit(measurement)
+//     if err != nil {
+//       log.Fatal(err)
+//     }
+//     log.Printf("measurementID: %+v\n", measurementID)
+//
+// This API is such that every small operation that a test must perform
+// is a separate operation. This allows you to handle errors and results
+// of each separate operation in the way you find most convenient.
 package nettest
 
 import (
@@ -7,17 +40,20 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/measurement-kit/measurement-kit/go/bouncer"
-	"github.com/measurement-kit/measurement-kit/go/collector"
-	"github.com/measurement-kit/measurement-kit/go/geolookupper"
-	"github.com/measurement-kit/measurement-kit/go/nettest/model"
+	"github.com/measurement-kit/measurement-kit/go/ooni/bouncer"
+	"github.com/measurement-kit/measurement-kit/go/ooni/collector"
+	"github.com/measurement-kit/measurement-kit/go/ooni/geolookup"
+	"github.com/measurement-kit/measurement-kit/go/ooni/measurement"
 )
+
+// DateFormat is the format used by OONI for dates inside reports.
+const DateFormat = "2006-01-02 15:04:05"
 
 // Config contains the generic nettest configuration set by the
 // application that wants to run the nettest.
 type Config struct {
-	// ASNDBPath contains the ASN DB path.
-	ASNDBPath string
+	// ASNDatabasePath contains the ASN DB path.
+	ASNDatabasePath string
 
 	// BouncerBaseURL contains the bouncer base URL.
 	BouncerBaseURL string
@@ -29,11 +65,8 @@ type Config struct {
 	SoftwareVersion string
 }
 
-// dateformat is the format used by OONI for dates inside reports.
-const dateformat = "2006-01-02 15:04:05"
-
 // Func is the function that implements a nettest.
-type Func = func(string)interface{}
+type Func = func(string) interface{}
 
 // Nettest is a nettest.
 type Nettest struct {
@@ -66,23 +99,11 @@ type Nettest struct {
 
 	// GeoLookupInfo contains geolookup info. This field is filled by
 	// the GeoLookup function.
-	GeoLookupInfo geolookupper.Result
+	GeoLookupInfo geolookup.Result
 
 	// Report is the report bound to this nettest. This field is initialized
 	// by the OpenReport function and closed by the Close function.
 	Report collector.Report
-}
-
-// New returns a new nettest instance.
-func New(ctx context.Context, config Config, name, version string, fn Func) *Nettest {
-	return &Nettest{
-		Config:        config,
-		Ctx:           ctx,
-		Func:          fn,
-		TestName:      name,
-		TestStartTime: time.Now().UTC().Format(dateformat),
-		TestVersion:   version,
-	}
 }
 
 // DiscoverAvailableCollectors discovers the available collectors.
@@ -113,15 +134,14 @@ func (nettest *Nettest) SelectCollector() error {
 func (nettest *Nettest) collectorBaseURL() string {
 	if nettest.SelectedCollector.Address != "" {
 		return fmt.Sprintf("https://%s/", nettest.SelectedCollector.Address)
-	} else {
-		return "https://a.collector.ooni.io/"
 	}
+	return "https://a.collector.ooni.io/"
 }
 
 // GeoLookup performs the geolookup (probe_ip, probe_asn, etc.)
 func (nettest *Nettest) GeoLookup() error {
-	info, err := geolookupper.Lookup(nettest.Ctx, geolookupper.Config{
-		ASNDBPath: nettest.Config.ASNDBPath,
+	info, err := geolookup.Perform(nettest.Ctx, geolookup.Config{
+		ASNDatabasePath: nettest.Config.ASNDatabasePath,
 	})
 	if err != nil {
 		return err
@@ -134,18 +154,16 @@ func (nettest *Nettest) GeoLookup() error {
 func (nettest *Nettest) probeASN() string {
 	if nettest.GeoLookupInfo.ProbeASN != "" {
 		return nettest.GeoLookupInfo.ProbeASN
-	} else {
-		return "AS0"
 	}
+	return "AS0"
 }
 
 // probeCC is like probeASN but for the country code (CC).
 func (nettest *Nettest) probeCC() string {
 	if nettest.GeoLookupInfo.ProbeCC != "" {
 		return nettest.GeoLookupInfo.ProbeCC
-	} else {
-		return "ZZ"
 	}
+	return "ZZ"
 }
 
 // OpenReport opens a new report for the nettest.
@@ -155,7 +173,7 @@ func (nettest *Nettest) OpenReport() error {
 	}
 	report, err := collector.Open(nettest.Ctx, collector.Config{
 		BaseURL: nettest.collectorBaseURL(),
-	}, collector.Template{
+	}, collector.ReportTemplate{
 		ProbeASN:        nettest.probeASN(),
 		ProbeCC:         nettest.probeCC(),
 		SoftwareName:    nettest.Config.SoftwareName,
@@ -173,7 +191,7 @@ func (nettest *Nettest) OpenReport() error {
 // Measure runs a nettest measurement with the provided input and returns the
 // measurement object. Pass an empty string for input-less nettests. It is
 // safe to call this method from different goroutines concurrently.
-func (nettest *Nettest) Measure(input string) model.Measurement {
+func (nettest *Nettest) Measure(input string) measurement.Measurement {
 	measurement := nettest.NewMeasurement()
 	measurement.Input = input
 	t0 := time.Now()
@@ -186,10 +204,10 @@ func (nettest *Nettest) Measure(input string) model.Measurement {
 // NewMeasurement returns a new measurement. The fields that the user should
 // initialize are Inputs, TestKeys, and TestRuntime. All the other fields are
 // already initialized by NewMeasurement.
-func (nettest *Nettest) NewMeasurement() model.Measurement {
-	return model.Measurement{
+func (nettest *Nettest) NewMeasurement() measurement.Measurement {
+	return measurement.Measurement{
 		DataFormatVersion:    "0.2.0",
-		MeasurementStartTime: time.Now().UTC().Format(dateformat),
+		MeasurementStartTime: time.Now().UTC().Format(DateFormat),
 		ProbeASN:             nettest.probeASN(),
 		ProbeCC:              nettest.probeCC(),
 		ReportID:             nettest.Report.ID,
@@ -201,9 +219,10 @@ func (nettest *Nettest) NewMeasurement() model.Measurement {
 	}
 }
 
-// Submit submits a measurement. Returns the measurementID on success and
-// an error on failure. This method is concurrency safe.
-func (nettest *Nettest) Submit(measurement model.Measurement) (string, error) {
+// Submit submits a measurement to the discovered collector. Returns the
+// measurementID on success and an error on failure. It is safe to call this
+// method from different goroutines concurrently.
+func (nettest *Nettest) Submit(measurement measurement.Measurement) (string, error) {
 	measurementID, err := nettest.Report.Update(nettest.Ctx, measurement)
 	if err != nil {
 		return "", err
@@ -211,11 +230,10 @@ func (nettest *Nettest) Submit(measurement model.Measurement) (string, error) {
 	return measurementID, nil
 }
 
-// Close closes the possibly open report.
+// Close makes sure that, if we opened a report, we close it.
 func (nettest *Nettest) Close() error {
 	if nettest.Report.ID != "" {
 		return nettest.Report.Close(nettest.Ctx)
-	} else {
-		return nil
 	}
+	return nil
 }

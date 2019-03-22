@@ -1,4 +1,4 @@
-package geolookupper
+package geolookup
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 // lookupASNAndOrg lookups the probe ASN and organization, and stores them
 // inside of result, on success; returns an error, on failure.
 func lookupASNAndOrg(config Config, IP string, result *Result) error {
-	db, err := maxminddb.Open(config.ASNDBPath)
+	db, err := maxminddb.Open(config.ASNDatabasePath)
 	if err != nil {
 		return err
 	}

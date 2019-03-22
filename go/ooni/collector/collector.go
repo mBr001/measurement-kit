@@ -1,5 +1,7 @@
-// Package collector contains a client implementation of the OONI
-// collector protocol. We implement v2.0.0.
+// Package collector contains a OONI collector client implementation.
+//
+// Specifically we implement v2.0.0 of the OONI collector specification defined
+// in https://github.com/ooni/spec/blob/master/backends/bk-003-collector.md.
 package collector
 
 import (
@@ -11,6 +13,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/measurement-kit/measurement-kit/go/ooni/measurement"
 )
 
 // Config contains the collector configuration
@@ -19,24 +23,24 @@ type Config struct {
 	BaseURL string
 }
 
-// Template is the template for opening a report
-type Template struct {
-	// ProbeASN is the probe's autonomous system number
+// ReportTemplate is the template for opening a report
+type ReportTemplate struct {
+	// ProbeASN is the probe's autonomous system number (e.g. `AS1234`)
 	ProbeASN string `json:"probe_asn"`
 
-	// ProbeCC is the probe's country code
+	// ProbeCC is the probe's country code (e.g. `IT`)
 	ProbeCC string `json:"probe_cc"`
 
-	// SoftwareName is the app name
+	// SoftwareName is the app name (e.g. `measurement-kit`)
 	SoftwareName string `json:"software_name"`
 
-	// SoftwareVersion is the app version
+	// SoftwareVersion is the app version (e.g. `0.9.1`)
 	SoftwareVersion string `json:"software_version"`
 
-	// TestName is the test name
+	// TestName is the test name (e.g. `ndt`)
 	TestName string `json:"test_name"`
 
-	// TestVersion is the test version
+	// TestVersion is the test version (e.g. `1.0.1`)
 	TestVersion string `json:"test_version"`
 }
 
@@ -45,7 +49,7 @@ type Report struct {
 	// ID is the report ID
 	ID string `json:"report_id"`
 
-	// Conf is the configuration used to contact the collector
+	// Conf is the configuration being used
 	Conf Config
 }
 
@@ -71,9 +75,8 @@ func post(ctx context.Context, c Config, p string, b []byte) ([]byte, error) {
 	return ioutil.ReadAll(response.Body)
 }
 
-// Open opens a new report with the given context, configuration, and
-// report template. Returns an open report or an error.
-func Open(ctx context.Context, conf Config, rt Template) (Report, error) {
+// Open opens a new report. Returns the report on success; an error on failure.
+func Open(ctx context.Context, conf Config, rt ReportTemplate) (Report, error) {
 	report := Report{Conf: conf}
 	data, err := json.Marshal(rt)
 	if err != nil {
@@ -100,12 +103,13 @@ type updateResponse struct {
 	ID string `json:"measurement_id"`
 }
 
-// Update updates a report with the given context and opaque measurement
-// content. Returns the measurement ID or an error.
-func (r Report) Update(ctx context.Context, c interface{}) (string, error) {
+// Update updates a report by appending a new measurement to it.
+//
+// Returns the measurement ID on success; an error on failure.
+func (r Report) Update(ctx context.Context, m measurement.Measurement) (string, error) {
 	ureq := updateRequest{
 		Format:  "json",
-		Content: c,
+		Content: m,
 	}
 	data, err := json.Marshal(ureq)
 	if err != nil {
@@ -123,7 +127,7 @@ func (r Report) Update(ctx context.Context, c interface{}) (string, error) {
 	return ures.ID, nil
 }
 
-// Close returns the result of closing an open report.
+// Close closes the report. Returns nil on success; an error on failure.
 func (r Report) Close(ctx context.Context) error {
 	_, err := post(ctx, r.Conf, fmt.Sprintf("/report/%s/close", r.ID), nil)
 	return err

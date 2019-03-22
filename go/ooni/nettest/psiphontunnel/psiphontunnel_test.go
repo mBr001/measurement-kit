@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/measurement-kit/measurement-kit/go/nettest/nettest"
+	"github.com/measurement-kit/measurement-kit/go/ooni/nettest"
 )
 
 func TestRunIntegration(t *testing.T) {
@@ -12,7 +12,7 @@ func TestRunIntegration(t *testing.T) {
 		ConfigFilePath: "/tmp/psiphon.json",
 		WorkDirPath:    "/tmp/",
 	}
-	testkeys := Run(context.Background(), config)
+	testkeys := run(context.Background(), config)
 	if testkeys.Failure != "" {
 		t.Fatal("Failure is not empty")
 	}
@@ -24,7 +24,7 @@ func TestRunIntegration(t *testing.T) {
 func TestNewNettestIntegration(t *testing.T) {
 	config := Config{
 		NettestConfig: nettest.Config{
-			ASNDBPath:       "../../../asn.mmdb",
+			ASNDatabasePath: "../../../asn.mmdb",
 			BouncerBaseURL:  "https://events.proteus.test.ooni.io",
 			SoftwareName:    "measurement-kit",
 			SoftwareVersion: "0.11.0-alpha",

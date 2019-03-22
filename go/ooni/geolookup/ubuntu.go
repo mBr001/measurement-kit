@@ -1,5 +1,4 @@
-// Package geolookupper performs a geolookup.
-package geolookupper
+package geolookup
 
 import (
 	"context"

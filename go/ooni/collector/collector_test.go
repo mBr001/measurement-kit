@@ -4,15 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/measurement-kit/measurement-kit/go/nettest/model"
+	"github.com/measurement-kit/measurement-kit/go/ooni/measurement"
 )
 
 type fakeTestKeys struct {
 	ClientResolver string `json:"client_resolver"`
 }
 
-func makeMeasurement(rt Template, ID string) model.Measurement {
-	return model.Measurement{
+func makeMeasurement(rt ReportTemplate, ID string) measurement.Measurement {
+	return measurement.Measurement{
 		DataFormatVersion:    "0.2.0",
 		ID:                   "bdd20d7a-bba5-40dd-a111-9863d7908572",
 		MeasurementStartTime: "2018-11-01 15:33:20",
@@ -35,7 +35,7 @@ func TestIntegration(t *testing.T) {
 	config := Config{
 		BaseURL: "https://collector-sandbox.ooni.io",
 	}
-	template := Template{
+	template := ReportTemplate{
 		ProbeASN:        "AS0",
 		ProbeCC:         "ZZ",
 		SoftwareName:    "measurement-kit",
