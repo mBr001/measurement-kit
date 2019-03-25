@@ -1,17 +1,17 @@
-// Package external contains code for running external nettests.
+// Package nettest contains code for running nettests.
 //
 // This API is such that every small operation that a test must perform
 // is a separate operation. This allows you to handle errors and results
 // of each separate operation in the way you find most convenient.
 //
-// An external nettest is a nettest that is not implemented as part of
+// An nettest is a nettest that is not implemented as part of
 // this library but is implemented elsewhere.
 //
-// Creating an external nettest
+// Creating a nettest
 //
-// To create an external nettest just instantiate it:
+// To create a nettest just instantiate it:
 //
-//     var nettest external.Nettest
+//     var nettest nettest.Nettest
 //
 // You must fill the following fields:
 //
@@ -25,11 +25,15 @@
 //
 // - nettest.SoftwareVersion with the app version
 //
-// - nettest.StartTime with the UTC test start time formatted according
-// the format expected by OONI (you can use external.TestStartTime
-// to initialize this field with the current UTC time, or external.DateFormat
+// - nettest.TestStartTime with the UTC test start time formatted according
+// the format expected by OONI (you can use nettest.FormatTimeNowUTC
+// to initialize this field with the current UTC time, or nettest.DateFormat
 // to format another time according to the proper format -- just remember
 // that you must use the UTC time here)
+//
+// - nettest.Measure if the nettest is written in Go, otherwise, if the
+// nettest is still in C++, you'll need to call C++ code to get back
+// the test keys and properly finish initializing a measurement.
 //
 // For example
 //
@@ -38,7 +42,10 @@
 //     nettest.TestVersion = "0.0.1"
 //     nettest.SoftwareName = "example"
 //     nettest.SoftwareVersion = "0.0.1"
-//     nettest.TestStartTime = external.FormatStartTimeNowUTC()
+//     nettest.TestStartTime = nettest.FormatTimeNowUTC()
+//     nettest.Measure = func(input string, m *measurement.Measurement) {
+//       // perform measurement and initialize m
+//     }
 //
 // You may also want to fill other fields or use nettest specific
 // functionality for automatically filling them.
@@ -157,14 +164,20 @@
 // - measurement.TestKeys, which should contains a JSON serializable
 // interface{} containing the nettest specific results
 //
-// - measurement.Runtime, which should contain the measurement
+// - measurement.MeasurementRuntime, which should contain the measurement
 // runtime in seconds as a floating point
 //
 // - measurement.Input, which should only be initialized if your
-// external nettest requires input
+// nettest requires input
 //
-// Once you have performed a measurement and initialized all the
-// above fields, you can then submit it.
+// If nettest.Measure is initialized, it will do that for you:
+//
+//     nettest.Measure(input, &measurement)
+//
+// where input is an empty string is the nettest does not take any
+// input. Otherwise, you'll need to call C++ code to get the test
+// keys and initialize Runtime and Input yourself. Either way, when
+// you're done, you can submit the measurement.
 //
 // Note that, by default, the ProbeIP in the measurement will be set
 // to "127.0.0.1". If you want to submit the real probe IP, you'll
@@ -184,7 +197,7 @@
 // may be empty if the collector does not support if. If this field
 // isn't empty, later you can use this OOID to get the measurement
 // from the OONI API.
-package external
+package nettest
 
 import (
 	"context"
@@ -201,14 +214,20 @@ import (
 // DateFormat is the format used by OONI for dates inside reports.
 const DateFormat = "2006-01-02 15:04:05"
 
-// FormatStartTimeNowUTC formats the current time in UTC using the OONI format.
-func FormatStartTimeNowUTC() string {
+// FormatTimeNowUTC formats the current time in UTC using the OONI format.
+func FormatTimeNowUTC() string {
 	return time.Now().UTC().Format(DateFormat)
 }
 
-// Nettest is an external nettest.
+// MeasureFunc is the function running a measurement. Pass an empty string
+// if the nettest does not take input. Remember to initialize the fields
+// of measurement that are not initialized by NewMeasurement (see above for
+// a complete list of such fields).
+type MeasureFunc = func(input string, measurement *measurement.Measurement)
+
+// Nettest is a nettest.
 type Nettest struct {
-	// Ctx is the context for the external nettest.
+	// Ctx is the context for the nettest.
 	Ctx context.Context
 
 	// TestName is the test name.
@@ -226,6 +245,9 @@ type Nettest struct {
 	// TestStartTime is the UTC time when the test started.
 	TestStartTime string
 
+	// Measure runs the measurement.
+	Measure MeasureFunc
+
 	// SelectedBouncer is the selected bouncer.
 	SelectedBouncer *bouncer.Entry
 
@@ -237,6 +259,12 @@ type Nettest struct {
 
 	// AvailableCollectors contains all the available test helpers.
 	AvailableTestHelpers []bouncer.Entry
+
+	// CountryDatabasePath contains the country MMDB database path.
+	CountryDatabasePath string
+
+	// ASNDatabasePath contains the ASN MMDB database path.
+	ASNDatabasePath string
 
 	// GeoInfo contains the geolookup result.
 	GeoInfo geolookup.Result
@@ -306,7 +334,7 @@ func (nettest *Nettest) collectorBaseURL() string {
 // GeoLookup performs the geolookup (probe_ip, probe_asn, etc.)
 func (nettest *Nettest) GeoLookup() error {
 	info, err := geolookup.Perform(nettest.Ctx, geolookup.Config{
-		ASNDatabasePath: nettest.Config.ASNDatabasePath,
+		ASNDatabasePath: nettest.ASNDatabasePath,
 	})
 	if err != nil {
 		return err
@@ -376,15 +404,15 @@ func (nettest *Nettest) NewMeasurement() measurement.Measurement {
 // safe to call this function from different goroutines concurrently as long
 // as the measurement is not shared by the goroutines.
 func (nettest *Nettest) SubmitMeasurement(measurement *measurement.Measurement) error {
-	measurementID, err := nettest.Report.Update(nettest.Ctx, measurement)
+	measurementID, err := nettest.Report.Update(nettest.Ctx, *measurement)
 	if err != nil {
-		return "", err
+		return err
 	}
 	measurement.OOID = measurementID
 	return nil
 }
 
 // CloseReport closes an open report.
-func (nettest *Nettest) Close() error {
+func (nettest *Nettest) CloseReport() error {
 	return nettest.Report.Close(nettest.Ctx)
 }

@@ -24,6 +24,14 @@ type Measurement struct {
 	// MeasurementStartTime is the time when the measurement started
 	MeasurementStartTime string `json:"measurement_start_time"`
 
+	// MeasurementRuntime contains the measurement runtime. The JSON name
+	// is test_runtime because this is the name expected by the OONI backend
+	// even though that name is clearly a misleading one.
+	MeasurementRuntime float64 `json:"test_runtime"`
+
+	// OOID is the measurement ID stamped by the OONI collector.
+	OOID string `json:"ooid,omitempty"`
+
 	// Options contains command line options
 	Options []string `json:"options,omitempty"`
 
@@ -57,9 +65,6 @@ type Measurement struct {
 
 	// TestName contains the test name
 	TestName string `json:"test_name"`
-
-	// TestRuntime contains the test runtime
-	TestRuntime float64 `json:"test_runtime"`
 
 	// TestStartTime contains the test start time
 	TestStartTime string `json:"test_start_time"`

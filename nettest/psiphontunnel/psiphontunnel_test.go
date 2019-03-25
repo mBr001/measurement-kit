@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/measurement-kit/measurement-kit/nettest"
+	"github.com/measurement-kit/measurement-kit/bouncer"
+	"github.com/measurement-kit/measurement-kit/measurement"
 )
 
 func TestRunIntegration(t *testing.T) {
@@ -23,17 +24,17 @@ func TestRunIntegration(t *testing.T) {
 
 func TestNewNettestIntegration(t *testing.T) {
 	config := Config{
-		NettestConfig: nettest.Config{
-			ASNDatabasePath: "../../asn.mmdb",
-			BouncerBaseURL:  "https://events.proteus.test.ooni.io",
-			SoftwareName:    "measurement-kit",
-			SoftwareVersion: "0.11.0-alpha",
-		},
 		ConfigFilePath: "/tmp/psiphon.json",
 		WorkDirPath:    "/tmp/",
 	}
 	nettest := NewNettest(context.Background(), config)
-	defer nettest.Close()
+	nettest.ASNDatabasePath = "../../asn.mmdb"
+	nettest.SoftwareName = "measurement-kit"
+	nettest.SoftwareVersion = "0.11.0-alpha"
+	nettest.SelectedBouncer = &bouncer.Entry{
+		Type: "https",
+		Address: "events.proteus.test.ooni.io",
+	}
 	err := nettest.DiscoverAvailableCollectors()
 	if err != nil {
 		t.Fatal(err)
@@ -48,17 +49,18 @@ func TestNewNettestIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("GeoLookupInfo: %+v", nettest.GeoLookupInfo)
+	t.Logf("GeoInfo: %+v", nettest.GeoInfo)
 	err = nettest.OpenReport()
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer nettest.CloseReport()
 	t.Logf("Report: %+v", nettest.Report)
-	measurement := nettest.Measure("")
+	nettest.Measure("", &measurement)
 	t.Logf("measurement: %+v", measurement)
-	measurementID, err := nettest.Submit(measurement)
+	err = nettest.SubmitMeasurement(&measurement)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("measurementID: %+v", measurementID)
+	t.Logf("measurementID: %+v", measurement.OOID)
 }

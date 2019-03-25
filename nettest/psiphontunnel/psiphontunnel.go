@@ -15,15 +15,12 @@ import (
 	"golang.org/x/net/proxy"
 
 	"github.com/Psiphon-Labs/psiphon-tunnel-core/ClientLibrary/clientlib"
+	"github.com/measurement-kit/measurement-kit/measurement"
 	"github.com/measurement-kit/measurement-kit/nettest"
-	"github.com/measurement-kit/measurement-kit/nettest/internal"
 )
 
 // Config contains the nettest configuration.
 type Config struct {
-	// NettestConfig contains the generic nettest configuration.
-	NettestConfig nettest.Config
-
 	// ConfigFilePath is the path where Psiphon config file is located.
 	ConfigFilePath string
 
@@ -123,11 +120,24 @@ func run(ctx context.Context, config Config) Results {
 	return results
 }
 
-// NewNettest creates a new psiphontunnel nettest.
+// NewNettest creates a new psiphontunnel nettest. This function
+// initializes the following nettest fields:
+//
+// - Ctx
+// - TestName
+// - TestVersion
+// - TestStartTime
+// - Measure
 func NewNettest(ctx context.Context, config Config) *nettest.Nettest {
-	nettest := internal.NewNettest(
-		ctx, config.NettestConfig, "psiphontunnel", "0.0.1", func(string) interface{} {
-			return run(ctx, config)
-		})
-	return nettest
+	return &nettest.Nettest{
+		Ctx:             ctx,
+		TestName:        "psiphontunnel",
+		TestVersion:     "0.0.1",
+		TestStartTime:   nettest.FormatTimeNowUTC(),
+		Measure: func(input string, m *measurement.Measurement) {
+			t0 := time.Now()
+			m.TestKeys = run(ctx, config)
+			m.MeasurementRuntime = float64(time.Now().Sub(t0)) / float64(time.Second)
+		},
+	}
 }
