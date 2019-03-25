@@ -5,7 +5,7 @@ import "C"
 import (
 	"sync"
 
-	"github.com/measurement-kit/measurement-kit/go/task"
+	"github.com/measurement-kit/measurement-kit/task"
 )
 
 // mutex protects table from concurrent access

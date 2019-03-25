@@ -14,7 +14,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/measurement-kit/measurement-kit/go/ooni/measurement"
+	"github.com/measurement-kit/measurement-kit/measurement"
 )
 
 // Config contains the collector configuration

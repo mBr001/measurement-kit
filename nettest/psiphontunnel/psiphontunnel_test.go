@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/measurement-kit/measurement-kit/go/ooni/nettest"
+	"github.com/measurement-kit/measurement-kit/nettest"
 )
 
 func TestRunIntegration(t *testing.T) {
@@ -24,7 +24,7 @@ func TestRunIntegration(t *testing.T) {
 func TestNewNettestIntegration(t *testing.T) {
 	config := Config{
 		NettestConfig: nettest.Config{
-			ASNDatabasePath: "../../../asn.mmdb",
+			ASNDatabasePath: "../../asn.mmdb",
 			BouncerBaseURL:  "https://events.proteus.test.ooni.io",
 			SoftwareName:    "measurement-kit",
 			SoftwareVersion: "0.11.0-alpha",

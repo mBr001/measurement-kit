@@ -7,7 +7,7 @@ import (
 
 func TestIntegrationLookup(t *testing.T) {
 	config := Config{
-		ASNDatabasePath: "../../asn.mmdb",
+		ASNDatabasePath: "../asn.mmdb",
 	}
 	result, err := Perform(context.Background(), config)
 	if err != nil {

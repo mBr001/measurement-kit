@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/measurement-kit/measurement-kit/go/ooni/measurement"
+	"github.com/measurement-kit/measurement-kit/measurement"
 )
 
 type fakeTestKeys struct {

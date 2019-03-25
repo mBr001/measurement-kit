@@ -1,8 +1,8 @@
 package task
 
 import (
-	"github.com/measurement-kit/measurement-kit/go/ooni/nettest"
-	"github.com/measurement-kit/measurement-kit/go/ooni/nettest/psiphontunnel"
+	"github.com/measurement-kit/measurement-kit/nettest"
+	"github.com/measurement-kit/measurement-kit/nettest/psiphontunnel"
 )
 
 // psiphontunnelNew creates a new psiphontunnel nettest.

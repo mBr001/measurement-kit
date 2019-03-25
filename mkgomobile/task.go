@@ -2,7 +2,7 @@
 package mkgomobile
 
 import (
-	"github.com/measurement-kit/measurement-kit/go/task"
+	"github.com/measurement-kit/measurement-kit/task"
 )
 
 // Task is a task running some operations. The usage is as follows:

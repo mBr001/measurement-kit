@@ -6,7 +6,7 @@ import (
 
 func TestIntegrationLookupASNAndOrg(t *testing.T) {
 	config := Config{
-		ASNDatabasePath: "../../asn.mmdb",
+		ASNDatabasePath: "../asn.mmdb",
 	}
 	var result Result
 	err := lookupASNAndOrg(config, "8.8.8.8", &result)

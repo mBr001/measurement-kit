@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/measurement-kit/measurement-kit/go/ooni/nettest"
+	"github.com/measurement-kit/measurement-kit/nettest"
 )
 
 // discovercollectors discovers the available collectors
