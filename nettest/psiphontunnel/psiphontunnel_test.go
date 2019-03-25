@@ -31,7 +31,7 @@ func TestNewNettestIntegration(t *testing.T) {
 	nettest.SoftwareName = "measurement-kit"
 	nettest.SoftwareVersion = "0.11.0-alpha"
 	nettest.SelectedBouncer = &bouncer.Entry{
-		Type: "https",
+		Type:    "https",
 		Address: "events.proteus.test.ooni.io",
 	}
 	err := nettest.AutomaticallySelectCollector()

@@ -130,10 +130,10 @@ func run(ctx context.Context, config Config) Results {
 // - Measure
 func NewNettest(ctx context.Context, config Config) *nettest.Nettest {
 	return &nettest.Nettest{
-		Ctx:             ctx,
-		TestName:        "psiphontunnel",
-		TestVersion:     "0.0.1",
-		TestStartTime:   nettest.FormatTimeNowUTC(),
+		Ctx:           ctx,
+		TestName:      "psiphontunnel",
+		TestVersion:   "0.0.1",
+		TestStartTime: nettest.FormatTimeNowUTC(),
 		Measure: func(input string, m *measurement.Measurement) {
 			t0 := time.Now()
 			m.TestKeys = run(ctx, config)

@@ -28,8 +28,8 @@ func psiphontunnelNew(task *Task, settings *settings) (*nettest.Nettest, error) 
 		if err != nil {
 			return nil, err // TODO(bassosimone): better wrapping of this error
 		}
-		nettest.SelectedBouncer = &bouncer.Entry {
-			Type: "https",
+		nettest.SelectedBouncer = &bouncer.Entry{
+			Type:    "https",
 			Address: URL.Host,
 		}
 	}
