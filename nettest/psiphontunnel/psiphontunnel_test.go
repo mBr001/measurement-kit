@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/measurement-kit/measurement-kit/bouncer"
-	"github.com/measurement-kit/measurement-kit/measurement"
 )
 
 func TestRunIntegration(t *testing.T) {
@@ -35,12 +34,7 @@ func TestNewNettestIntegration(t *testing.T) {
 		Type: "https",
 		Address: "events.proteus.test.ooni.io",
 	}
-	err := nettest.DiscoverAvailableCollectors()
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("AvailableCollectors: %+v", nettest.AvailableCollectors)
-	err = nettest.SelectCollector()
+	err := nettest.AutomaticallySelectCollector()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,6 +50,7 @@ func TestNewNettestIntegration(t *testing.T) {
 	}
 	defer nettest.CloseReport()
 	t.Logf("Report: %+v", nettest.Report)
+	measurement := nettest.NewMeasurement()
 	nettest.Measure("", &measurement)
 	t.Logf("measurement: %+v", measurement)
 	err = nettest.SubmitMeasurement(&measurement)
