@@ -30,17 +30,17 @@ type Config struct {
 // Result contains the result of the geolookup
 type Result struct {
 	// ProbeIP is the probe IP (e.g. `127.0.0.1`)
-	ProbeIP string
+	ProbeIP string `json:"probe_ip"`
 
 	// ProbeASN is the probe ASN (e.g. `AS123`)
-	ProbeASN string
+	ProbeASN string `json:"probe_asn"`
 
 	// ProbeCC is the probe country code (e.g. `IT`)
-	ProbeCC string
+	ProbeCC string `json:"probe_cc"`
 
 	// ProbeNetworkName is the name associated with the
 	// probe ASN (e.g. `Vodafone`)
-	ProbeNetworkName string
+	ProbeNetworkName string `json:"probe_network_name"`
 }
 
 // Perform performs a geolookup using context and config. It returns

@@ -13,69 +13,102 @@ import (
 	"github.com/measurement-kit/measurement-kit/nettest"
 )
 
-// geolookup performs a geoip lookup
-func geolookup(task *Task, nettest *nettest.Nettest) bool {
-	err := nettest.GeoLookup()
+// urlToAddress returns the Host of a given URL or an error.
+func urlToAddress(URL string) (string, error) {
+	exploded, err := url.Parse(URL)
 	if err != nil {
-		emit(task, event{Key: "failure.startup", Value: eventValue{
-			Failure: err.Error(),
-		}})
-		return false
+		return "", err
 	}
-	emit(task, event{Key: "status.progress", Value: eventValue{
-		Percentage: 0.15,
-		Message:    fmt.Sprintf("GeoInfo: %+v", nettest.GeoInfo),
-	}})
-	return true
+	return exploded.Host, nil
 }
 
-// openreport opens a report
-func openreport(task *Task, nettest *nettest.Nettest) bool {
-	err := nettest.OpenReport()
+// jsonMarshalString is like json.Marshal but returns a string
+func jsonMarshalString(input interface{}) (string, error) {
+	data, err := json.Marshal(input)
 	if err != nil {
-		emit(task, event{Key: "failure.report_create", Value: eventValue{
-			Failure: err.Error(),
-		}})
-		return false
+		return "", err
 	}
-	emit(task, event{Key: "status.progress", Value: eventValue{
-		Percentage: 0.2,
-		Message:    fmt.Sprintf("Report: %+v", nettest.Report),
-	}})
-	return true
+	return string(data), err
 }
 
-// runWithSettings runs a nettest with specific settings.
-func runWithSettings(task *Task, settings settings, nettest *nettest.Nettest) statusEnd {
-	if !geolookup(task, nettest) ||
-		!openreport(task, nettest) {
-		return statusEnd{}
-	}
-	defer nettest.CloseReport()
+// loop loops over the available input
+func loop(task *Task, settings settings, nettest *nettest.Nettest) statusEnd {
+	// TODO(bassosimone): read input files and randomize
+	// TODO(bassosimone): parallelism
+	// TODO(bassosimone): max_runtime
 	for idx, input := range settings.Inputs {
+		emitStatusMeasurementStart(task, idx, input)
+		// TODO(bassosimone): fill annotations etc
 		measurement := nettest.NewMeasurement()
 		nettest.Measure(input, &measurement)
-		data, err := json.Marshal(measurement)
+		jsonStr, err := jsonMarshalString(measurement)
 		if err != nil {
-			emit(task, event{Key: "bug.json_dump", Value: eventValue{
-				Failure: err.Error(),
-			}})
-			return statusEnd{}
-		}
-		emit(task, event{Key: "measurement", Value: eventValue{
-			Idx: int64(idx), JSONStr: string(data)}})
-		err = nettest.SubmitMeasurement(&measurement)
-		if err != nil {
-			emit(task, event{Key: "failure.measurement_submission", Value: eventValue{
-				Failure: err.Error(),
-				JSONStr: string(data),
-			}})
+			emitBugJsonDump(task)
 			continue
 		}
+		emitMeasurement(task, idx, input, jsonStr)
+		if !settings.Options.NoCollector {
+			err = nettest.SubmitMeasurement(&measurement)
+			if err != nil {
+				emitFailureMeasurementSubmission(task, err, idx, input, jsonStr)
+			} else {
+				emitStatusMeasurementSubmission(task, idx, input)
+			}
+		}
+		emitStatusMeasurementDone(task, idx, input)
 	}
-	emit(task, event{Key: "status.progress", Value: eventValue{
-		Percentage: 1.0, Message: "Nettest complete"}})
+	emitStatusProgress(task, 0.9, "ending the test")
 	return statusEnd{}
+}
+
+// openReport opens the report
+func openReport(task *Task, settings settings, nettest *nettest.Nettest) statusEnd {
+	// TODO(bassosimone): add support for writing report to file
+	nettest.SoftwareName = settings.Options.SoftwareName
+	nettest.SoftwareVersion = settings.Options.SoftwareVersion
+	if !settings.Options.NoCollector {
+		if settings.Options.CollectorBaseURL != "" {
+			address, err := urlToAddress(settings.Options.CollectorBaseURL)
+			if err != nil {
+				emitFailureStartup(task, err)
+				return statusEnd{Failure: "generic_error"}
+			}
+			nettest.SelectedCollector = &bouncer.Entry{
+				Type: "https",
+				Address: address,
+			}
+		}
+		err := nettest.OpenReport()
+		if err != nil {
+			emitFailureReportCreate(task, err)
+			if !settings.Options.IgnoreOpenReportError {
+				return statusEnd{Failure: "generic_error"}
+			}
+		} else {
+			emitStatusReportCreate(task, nettest.Report.ID)
+			defer nettest.CloseReport()
+		}
+	}
+	emitStatusProgress(task, 0.4, "open report")
+	return loop(task, settings, nettest)
+}
+
+// geoLookup performs a geolookup of the probe
+func geoLookup(task *Task, settings settings, nettest *nettest.Nettest) statusEnd {
+	nettest.GeoInfo.ProbeIP = "127.0.0.1"
+	nettest.GeoInfo.ProbeASN = "AS0"
+	nettest.GeoInfo.ProbeCC = "ZZ"
+	nettest.GeoInfo.ProbeNetworkName = ""
+	nettest.ASNDatabasePath = settings.Options.GeoIPASNPath
+	nettest.CountryDatabasePath = settings.Options.GeoIPCountryPath
+	err := nettest.GeoLookup()
+	if err != nil {
+		emitLogWarning(task, fmt.Sprintf("nettest.GeoLookup: %s", err.Error()))
+		// FALLTHROUGH
+	}
+	emitStatusGeoIPLookup(task, nettest.GeoInfo)
+	emitStatusProgress(task, 0.2, "geoip lookup")
+	return openReport(task, settings, nettest)
 }
 
 // queryBouncer queries the OONI bouncer
@@ -86,14 +119,14 @@ func queryBouncer(task *Task, settings settings, nettest *nettest.Nettest) statu
 		if settings.Options.BouncerBaseURL != "" {
 			baseURL = settings.Options.BouncerBaseURL
 		}
-		URL, err := url.Parse(baseURL)
+		address, err := urlToAddress(baseURL)
 		if err != nil {
 			emitFailureStartup(task, err)
 			return statusEnd{Failure: "value_error"}
 		}
 		nettest.SelectedBouncer = &bouncer.Entry{
 			Type:    "https",
-			Address: URL.Host,
+			Address: address,
 		}
 		err = nettest.DiscoverAvailableCollectors()
 		if err != nil {
@@ -118,9 +151,7 @@ func queryBouncer(task *Task, settings settings, nettest *nettest.Nettest) statu
 		}
 		emitStatusProgress(task, 0.1, "contacted bouncer")
 	}
-	// TODO(bassosimone): this function and the ones that it calls are
-	// just basic stubs that need a second round of review
-	return runWithSettings(task, settings, nettest)
+	return geoLookup(task, settings, nettest)
 }
 
 // makeNettestAndRun makes a nettest and runs the task.

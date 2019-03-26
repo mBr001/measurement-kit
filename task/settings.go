@@ -5,17 +5,29 @@ type options struct {
 	// BouncerBaseURL is the bouncer base URL
 	BouncerBaseURL string `json:"bouncer_base_url"`
 
+	// CollectorBaseURL is the collector base URL
+	CollectorBaseURL string `json:"collector_base_url"`
+
 	// ConfigFilePath is the path to a config file required by a nettest
 	ConfigFilePath string `json:"config_file_path"`
 
 	// GeoIPASNPath is the path to the MaxMind ASN database
 	GeoIPASNPath string `json:"geoip_asn_path"`
 
+	// GeoIPCountryPath is the path to the MaxMind country database
+	GeoIPCountryPath string `json:"geoip_country_path"`
+
 	// IgnoreBouncerError ignores an error when querying the bouncer
 	IgnoreBouncerError bool `json:"ignore_bouncer_error"`
 
+	// IgnoreOpenReportError ignores an error when opening the report
+	IgnoreOpenReportError bool `json:"ignore_open_report_error"`
+
 	// NoBouncer indicates that we don't want to use the OONI bouncer
 	NoBouncer bool `json:"no_bouncer"`
+
+	// NoCollector indicates that we don't want to use the OONI collector
+	NoCollector bool `json:"no_collector"`
 
 	// SoftwareName is the app name
 	SoftwareName string `json:"software_name"`
