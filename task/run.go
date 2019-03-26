@@ -2,44 +2,16 @@ package task
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/url"
+	"os"
+	"sync"
 	"sync/atomic"
 
+	"github.com/measurement-kit/measurement-kit/bouncer"
 	"github.com/measurement-kit/measurement-kit/nettest"
 )
-
-// discovercollectors discovers the available collectors
-func discovercollectors(task *Task, nettest *nettest.Nettest) bool {
-	err := nettest.DiscoverAvailableCollectors()
-	if err != nil {
-		emit(task, event{Key: "failure.startup", Value: eventValue{
-			Failure: err.Error(),
-		}})
-		return false
-	}
-	emit(task, event{Key: "status.progress", Value: eventValue{
-		Percentage: 0.05,
-		Message: fmt.Sprintf(
-			"AvailableCollectors: %+v", nettest.AvailableCollectors),
-	}})
-	return true
-}
-
-// selectcollector selects a collector
-func selectcollector(task *Task, nettest *nettest.Nettest) bool {
-	err := nettest.AutomaticallySelectCollector()
-	if err != nil {
-		emit(task, event{Key: "failure.startup", Value: eventValue{
-			Failure: err.Error(),
-		}})
-		return false
-	}
-	emit(task, event{Key: "status.progress", Value: eventValue{
-		Percentage: 0.1,
-		Message:    fmt.Sprintf("SelectedCollector: %+v", nettest.SelectedCollector),
-	}})
-	return true
-}
 
 // geolookup performs a geoip lookup
 func geolookup(task *Task, nettest *nettest.Nettest) bool {
@@ -73,35 +45,11 @@ func openreport(task *Task, nettest *nettest.Nettest) bool {
 	return true
 }
 
-// makenettest creates a new nettest or returns nil
-func makenettest(task *Task, settings *settings) *nettest.Nettest {
-	if settings.Name == "psiphontunnel" {
-		nettest, err := psiphontunnelNew(task, settings)
-		if err != nil {
-			emit(task, event{Key: "failure.startup", Value: eventValue{
-				Failure: err.Error(),
-			}})
-			return nil
-		}
-		return nettest
-	}
-	emit(task, event{Key: "failure.startup", Value: eventValue{
-		Failure: "Unknown nettest name",
-	}})
-	return nil
-}
-
-// runWithSettings runs a nettest with settings.
-func runWithSettings(task *Task, settings settings) {
-	nettest := makenettest(task, &settings)
-	if nettest == nil {
-		return
-	}
-	if !discovercollectors(task, nettest) ||
-		!selectcollector(task, nettest) ||
-		!geolookup(task, nettest) ||
+// runWithSettings runs a nettest with specific settings.
+func runWithSettings(task *Task, settings settings, nettest *nettest.Nettest) statusEnd {
+	if !geolookup(task, nettest) ||
 		!openreport(task, nettest) {
-		return
+		return statusEnd{}
 	}
 	defer nettest.CloseReport()
 	for idx, input := range settings.Inputs {
@@ -112,7 +60,7 @@ func runWithSettings(task *Task, settings settings) {
 			emit(task, event{Key: "bug.json_dump", Value: eventValue{
 				Failure: err.Error(),
 			}})
-			return
+			return statusEnd{}
 		}
 		emit(task, event{Key: "measurement", Value: eventValue{
 			Idx: int64(idx), JSONStr: string(data)}})
@@ -127,21 +75,104 @@ func runWithSettings(task *Task, settings settings) {
 	}
 	emit(task, event{Key: "status.progress", Value: eventValue{
 		Percentage: 1.0, Message: "Nettest complete"}})
+	return statusEnd{}
 }
 
-// runWithSerializedSettings runs a task with serialized settings
-func runWithSerializedSettings(task *Task, serializedsettings string) {
-	defer close(task.ch)
-	defer func() {
-		atomic.StoreInt64(&task.done, 1)
-	}()
+// queryBouncer queries the OONI bouncer
+func queryBouncer(task *Task, settings settings, nettest *nettest.Nettest) statusEnd {
+	emitStatusStarted(task)
+	if !settings.Options.NoBouncer {
+		baseURL := "https://bouncer.ooni.io/"
+		if settings.Options.BouncerBaseURL != "" {
+			baseURL = settings.Options.BouncerBaseURL
+		}
+		URL, err := url.Parse(baseURL)
+		if err != nil {
+			emitFailureStartup(task, err)
+			return statusEnd{Failure: "value_error"}
+		}
+		nettest.SelectedBouncer = &bouncer.Entry{
+			Type:    "https",
+			Address: URL.Host,
+		}
+		err = nettest.DiscoverAvailableCollectors()
+		if err != nil {
+			emitFailureStartup(task, err)
+			if !settings.Options.IgnoreBouncerError {
+				return statusEnd{Failure: "generic_error"}
+			}
+		}
+		err = nettest.DiscoverAvailableTestHelpers()
+		if err != nil {
+			emitFailureStartup(task, err)
+			if !settings.Options.IgnoreBouncerError {
+				return statusEnd{Failure: "generic_error"}
+			}
+		}
+		err = nettest.AutomaticallySelectCollector()
+		if err != nil {
+			emitFailureStartup(task, err)
+			if !settings.Options.IgnoreBouncerError {
+				return statusEnd{Failure: "generic_error"}
+			}
+		}
+		emitStatusProgress(task, 0.1, "contacted bouncer")
+	}
+	// TODO(bassosimone): this function and the ones that it calls are
+	// just basic stubs that need a second round of review
+	return runWithSettings(task, settings, nettest)
+}
+
+// makeNettestAndRun makes a nettest and runs the task.
+func makeNettestAndRun(task *Task, settings settings) statusEnd {
+	if settings.Name == "PsiphonTunnel" {
+		nettest, err := psiphontunnelNew(task, &settings)
+		if err != nil {
+			emitFailureStartup(task, err)
+			return statusEnd{Failure: "value_error"}
+		}
+		return queryBouncer(task, settings, nettest)
+	}
+	emitFailureStartup(task, errors.New("Unknown task name"))
+	return statusEnd{Failure: "value_error"}
+}
+
+// openLogFileAndRun opens the log file and runs the task.
+func openLogFileAndRun(task *Task, settings settings) statusEnd {
+	if settings.LogFilepath != "" {
+		filep, err := os.OpenFile(
+			settings.LogFilepath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		// Note that the specification says that we're supposed to ignore
+		// any error resulting in opening or writing the logfile
+		if err != nil {
+			task.logFile = filep
+			defer filep.Close()
+		}
+	}
+	return makeNettestAndRun(task, settings)
+}
+
+// parseAndRun parses serializedsettings and runs the task.
+func parseAndRun(task *Task, serializedsettings string) statusEnd {
 	var settings settings
 	err := json.Unmarshal([]byte(serializedsettings), &settings)
 	if err != nil {
-		emit(task, event{Key: "failure.startup", Value: eventValue{
-			Failure: err.Error(),
-		}})
-		return
+		emitFailureStartup(task, err)
+		return statusEnd{Failure: "value_error"}
 	}
-	runWithSettings(task, settings)
+	return openLogFileAndRun(task, settings)
+}
+
+// semaphore prevents tests from running in parallel
+var semaphore sync.Mutex
+
+// taskMain runs a task with serialized settings
+func taskMain(task *Task, settings string) {
+	emitStatusQueued(task)
+	semaphore.Lock() // blocked until my turn
+	// TODO(bassosimone): measure the amount of data consumed
+	emitStatusEnd(task, parseAndRun(task, settings))
+	close(task.ch)
+	atomic.StoreInt64(&task.done, 1)
+	semaphore.Unlock() // allow another test to run
 }

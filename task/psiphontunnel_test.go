@@ -7,7 +7,7 @@ import (
 
 func TestPsiphonTunnelIntegration(t *testing.T) {
 	config := `{
-		"name": "psiphontunnel",
+		"name": "PsiphonTunnel",
 		"options": {
 			"bouncer_base_url": "https://events.proteus.test.ooni.io",
 			"config_file_path": "/tmp/psiphon.json",
