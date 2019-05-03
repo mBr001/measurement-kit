@@ -3,25 +3,25 @@ image: Visual Studio 2017
 environment:
   matrix:
     #- PATH: "C:/msys64/x86_64/bin;C:/msys64/usr/bin;%PATH%"
-    - PATH: "C:/msys64/x86_64/bin;C:/msys64/usr/bin"
+    #- PATH: "C:/msys64/x86_64/bin;C:/msys64/usr/bin"
 
 before_build:
-  - cmd: bash -c "pacman --noconfirm -Syy pacman"
-  - cmd: bash -c "pacman --noconfirm -Syyuu"
-  - cmd: bash -c "pacman --noconfirm -S --needed base-devel"
-  - cmd: bash -c "pacman --noconfirm -S --needed mingw-w64-x86_64-toolchain"
-  - cmd: bash -c "pacman --noconfirm -S --needed openssl libevent curl"
+  - cmd: C:/msys64/usr/bin/bash -c "pacman --noconfirm -Syy pacman"
+  - cmd: C:/msys64/usr/bin/bash -c "pacman --noconfirm -Syyuu"
+  - cmd: C:/msys64/usr/bin/bash -c "pacman --noconfirm -S --needed base-devel"
+  - cmd: C:/msys64/usr/bin/bash -c "pacman --noconfirm -S --needed mingw-w64-x86_64-toolchain"
+  - cmd: C:/msys64/usr/bin/bash -c "pacman --noconfirm -S --needed openssl libevent curl"
 
 build_script:
-  - cmd: bash -c "pwd"
-  - cmd: bash -c "ls"
-  - cmd: bash -c "ls /"
-  - cmd: bash -c "./autogen.sh"
-  - cmd: bash -c "./configure --disable-dependency-tracking --with-ca-bundle=cacert.pem"
-  - cmd: bash -c "make -j`nproc` check TESTS="
+  - cmd: C:/msys64/usr/bin/bash -c "pwd"
+  - cmd: C:/msys64/usr/bin/bash -c "ls"
+  - cmd: C:/msys64/usr/bin/bash -c "ls /"
+  - cmd: C:/msys64/usr/bin/bash -c "./autogen.sh"
+  - cmd: C:/msys64/usr/bin/bash -c "./configure --disable-dependency-tracking --with-ca-bundle=cacert.pem"
+  - cmd: C:/msys64/usr/bin/bash -c "make -j`nproc` check TESTS="
 
 test_script:
-  - cmd: bash -c "make -j8 check"
+  - cmd: C:/msys64/usr/bin/bash -c "make -j8 check"
 
 on_failure:
-  - cmd: bash -c "cat ./test-suite.log"
+  - cmd: C:/msys64/usr/bin/bash -c "cat ./test-suite.log"
