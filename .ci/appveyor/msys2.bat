@@ -15,16 +15,16 @@ bash -lc "pacman --noconfirm -Syy pacman"
 bash -lc "pacman --noconfirm -Syyuu"
 
 rem Install required tools
-bash -xlc "pacman --noconfirm -S --needed base-devel"
-bash -xlc "pacman --noconfirm -S --needed mingw-w64-x86_64-toolchain"
-bash -xlc "pacman --noconfirm -S --needed openssl libevent libmaxminddb curl"
+bash -lc "pacman --noconfirm -S --needed base-devel"
+bash -lc "pacman --noconfirm -S --needed mingw-w64-x86_64-toolchain"
+bash -lc "pacman --noconfirm -S --needed openssl libevent libmaxminddb curl"
 
 rem configure
-bash -xlc "./autogen.sh"
-bash -xlc "./configure --disable-dependency-tracking --with-ca-bundle=cacert.pem"
+bash -lc "./autogen.sh"
+bash -lc "./configure --disable-dependency-tracking --with-ca-bundle=cacert.pem"
 
 rem build
-bash -xlc "make -j`nproc` check TESTS="
+bash -lc "make -j`nproc` check TESTS="
 
 rem run tests
-bash -xlc "make -j8 check || { cat ./test-suite.log; exit 1 }"
+bash -lc "make -j8 check || { cat ./test-suite.log; exit 1 }"
