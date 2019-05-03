@@ -2,9 +2,22 @@ image: Visual Studio 2017
 
 environment:
   matrix:
-    - MSYS2_ARCH: x86_64
-      MSYSTEM: MINGW64
-      BUILD_TOOL: msys2
+    - PATH: "C:/msys64/x86_64/bin;C:/msys64/usr/bin;%PATH%"
+
+before_build:
+  - cmd: bash -lc "pacman --noconfirm -Syy pacman"
+  - cmd: bash -lc "pacman --noconfirm -Syyuu"
+  - cmd: bash -lc "pacman --noconfirm -S --needed base-devel"
+  - cmd: bash -lc "pacman --noconfirm -S --needed mingw-w64-x86_64-toolchain"
+  - cmd: bash -lc "pacman --noconfirm -S --needed openssl libevent libmaxminddb curl"
 
 build_script:
-  - cmd: .ci\appveyor\%BUILD_TOOL%.bat
+  - cmd: bash -lc "./autogen.sh"
+  - cmd: bash -lc "./configure --disable-dependency-tracking --with-ca-bundle=cacert.pem"
+  - cmd: bash -lc "make -j`nproc` check TESTS="
+
+test_script:
+  - cmd: bash -lc "make -j8 check"
+
+on_failure:
+  - cmd: bash -lc "cat ./test-suite.log"
