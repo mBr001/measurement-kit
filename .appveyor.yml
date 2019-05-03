@@ -15,6 +15,7 @@ before_build:
 
 build_script:
   - cmd: bash -lc "echo $PATH"
+  - cmd: bash -lc "find /usr/bin -type f -name \*.dll"
   - cmd: bash -lc "./autogen.sh"
   - cmd: bash -lc "./configure --disable-dependency-tracking --with-ca-bundle=cacert.pem"
   - cmd: bash -lc "make -j`nproc` check TESTS="
