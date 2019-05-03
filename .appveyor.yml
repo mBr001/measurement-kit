@@ -18,6 +18,7 @@ build_script:
   - cmd: bash -lc "find /usr/bin -type f -name \*.dll"
   - cmd: bash -lc "ldd /usr/bin/curl.exe"
   - cmd: bash -lc "ldd /usr/bin/msys-curl-4.dll"
+  - cmd: bash -lc "pacman -Ss openssl"
   - cmd: bash -lc "./autogen.sh"
   - cmd: bash -lc "./configure --disable-dependency-tracking --with-ca-bundle=cacert.pem"
   - cmd: bash -lc "make -j`nproc` check TESTS="
