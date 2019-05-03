@@ -4,7 +4,7 @@ environment:
   matrix:
     #- PATH: "C:/msys64/x86_64/bin;C:/msys64/usr/bin;%PATH%"
     - PATH: "C:/msys64/x86_64/bin;C:/msys64/usr/bin"
-    - HOME: C:/projects/measurement-kit
+      HOME: C:/projects/measurement-kit
 
 before_build:
   - cmd: bash -lc "pacman --noconfirm -Syy pacman"
