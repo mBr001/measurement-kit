@@ -17,10 +17,14 @@ bash -lc "pacman --noconfirm -Syyuu"
 rem Install required tools
 bash -xlc "pacman --noconfirm -S --needed base-devel"
 bash -xlc "pacman --noconfirm -S --needed mingw-w64-x86_64-toolchain"
+bash -xlc "pacman --noconfirm -S --needed openssl libevent libmaxminddb curl"
 
-rem Invoke subsequent bash in the build tree
-cd %APPVEYOR_BUILD_FOLDER%
-set CHERE_INVOKING=yes
+rem configure
+bash -xlc "./autogen.sh"
+bash -xlc "./configure --disable-dependency-tracking --with-ca-bundle=cacert.pem"
 
-rem Build/test scripting
-bash -xlc "./.ci/appveyor/msys2.sh"
+rem build
+bash -xlc "make -j`nproc` check TESTS="
+
+rem run tests
+bash -xlc "make -j8 check || { cat ./test-suite.log; exit 1 }"
