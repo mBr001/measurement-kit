@@ -9,7 +9,7 @@ before_build:
   - cmd: bash -lc "pacman --noconfirm -Syyuu"
   - cmd: bash -lc "pacman --noconfirm -S --needed base-devel"
   - cmd: bash -lc "pacman --noconfirm -S --needed mingw-w64-x86_64-toolchain"
-  - cmd: bash -lc "pacman --noconfirm -S --needed openssl libevent libmaxminddb curl"
+  - cmd: bash -lc "pacman --noconfirm -S --needed openssl libevent curl"
 
 build_script:
   - cmd: bash -lc "./autogen.sh"
