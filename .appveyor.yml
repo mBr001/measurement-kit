@@ -15,7 +15,7 @@ build_script:
   - cmd: bash -c "pwd"
   - cmd: bash -c "ls"
   - cmd: bash -c "ls /"
-  - cmd: bash -c "find / -type f -name msys-crypto-1.1.dll"
+  - cmd: bash -c "find /msys64 -type f -name msys-crypto-1.1.dll"
   - cmd: bash -c "./autogen.sh"
   - cmd: bash -c "./configure --disable-dependency-tracking --with-ca-bundle=cacert.pem"
   - cmd: bash -c "make -j`nproc` check TESTS="
